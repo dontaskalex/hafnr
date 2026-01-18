@@ -191,8 +191,8 @@ function drawSpeechBubble(x, y, message, opacity = 1) {
 
     // Measure and wrap text
     ctx.font = '14px Inter, sans-serif';
-    const maxTextWidth = 180;
-    const maxLines = 3;
+    const maxTextWidth = 220;
+    const maxLines = 4;
     let lines = wrapText(ctx, message, maxTextWidth);
 
     // Limit to max lines
