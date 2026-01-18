@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>The Lobby</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -200,6 +200,67 @@
                 linear-gradient(#e8e0d5 1px, transparent 1px);
             background-size: 100% 30px;
             background-position: 0 -1px;
+        }
+
+        /* Mobile styles */
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 32px;
+            }
+
+            .header p {
+                font-size: 12px;
+            }
+
+            .online-count {
+                top: 15px;
+                right: 15px;
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+
+            .chat-container {
+                bottom: 20px;
+                left: 10px;
+                right: 10px;
+                transform: none;
+                width: auto;
+            }
+
+            .chat-input {
+                width: 100%;
+                flex: 1;
+                padding: 12px 16px;
+                font-size: 16px; /* Prevents iOS zoom */
+            }
+
+            .send-btn {
+                width: 44px;
+                height: 44px;
+                flex-shrink: 0;
+            }
+
+            .hint {
+                display: none;
+            }
+        }
+
+        /* Touch feedback */
+        .send-btn:active {
+            transform: scale(0.9);
+            background: #444;
+        }
+
+        /* Prevent text selection on mobile */
+        body {
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        .chat-input {
+            -webkit-user-select: text;
+            user-select: text;
         }
     </style>
 </head>

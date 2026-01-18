@@ -19,11 +19,19 @@ window.addEventListener('resize', resizeCanvas);
 // Generate unique ID for this session
 const myId = crypto.randomUUID();
 
-// My character state
+// World size (larger than viewport for scrolling)
+const WORLD_WIDTH = 1200;
+const WORLD_HEIGHT = 900;
+
+// Camera/viewport offset for panning
+let cameraX = 0;
+let cameraY = 0;
+
+// My character state - spawn in world coordinates
 const me = {
     id: myId,
-    x: Math.random() * (window.innerWidth - 200) + 100,
-    y: Math.random() * (window.innerHeight - 300) + 150,
+    x: Math.random() * (WORLD_WIDTH - 200) + 100,
+    y: Math.random() * (WORLD_HEIGHT - 200) + 100,
     message: null,
     messageTime: 0,
     bobOffset: Math.random() * Math.PI * 2, // Random start for idle animation
@@ -35,6 +43,11 @@ const others = new Map();
 // Speech bubble settings
 const BUBBLE_DURATION = 6000; // 6 seconds
 const BUBBLE_FADE_TIME = 1000; // 1 second fade
+
+// Touch/drag state for panning
+let isDragging = false;
+let lastTouchX = 0;
+let lastTouchY = 0;
 
 // Character drawing - simple hand-drawn style blob person
 function drawCharacter(x, y, isMe = false, bobOffset = 0) {
@@ -201,6 +214,44 @@ function drawSpeechBubble(x, y, message, opacity = 1) {
     ctx.restore();
 }
 
+// Center camera on player initially
+function centerCameraOnMe() {
+    cameraX = me.x - canvas.width / 2;
+    cameraY = me.y - canvas.height / 2;
+    clampCamera();
+}
+
+// Keep camera within world bounds
+function clampCamera() {
+    const maxX = Math.max(0, WORLD_WIDTH - canvas.width);
+    const maxY = Math.max(0, WORLD_HEIGHT - canvas.height);
+    cameraX = Math.max(0, Math.min(maxX, cameraX));
+    cameraY = Math.max(0, Math.min(maxY, cameraY));
+}
+
+// Convert world coordinates to screen coordinates
+function worldToScreen(x, y) {
+    return {
+        x: x - cameraX,
+        y: y - cameraY
+    };
+}
+
+// Draw world boundary indicator
+function drawWorldBounds() {
+    ctx.save();
+    ctx.translate(-cameraX, -cameraY);
+
+    // Subtle boundary
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([10, 10]);
+    ctx.strokeRect(10, 10, WORLD_WIDTH - 20, WORLD_HEIGHT - 20);
+    ctx.setLineDash([]);
+
+    ctx.restore();
+}
+
 // Main render loop
 function render() {
     // Clear canvas
@@ -208,27 +259,39 @@ function render() {
 
     const now = Date.now();
 
+    // Draw world bounds
+    drawWorldBounds();
+
     // Draw other players first (behind)
     others.forEach((player) => {
-        // Calculate bubble opacity
-        let bubbleOpacity = 1;
-        if (player.message && player.messageTime) {
-            const elapsed = now - player.messageTime;
-            if (elapsed > BUBBLE_DURATION - BUBBLE_FADE_TIME) {
-                bubbleOpacity = Math.max(0, 1 - (elapsed - (BUBBLE_DURATION - BUBBLE_FADE_TIME)) / BUBBLE_FADE_TIME);
-            }
-            if (elapsed > BUBBLE_DURATION) {
-                player.message = null;
-            }
-        }
+        const screenPos = worldToScreen(player.x, player.y);
 
-        drawCharacter(player.x, player.y, false, player.bobOffset || 0);
-        if (player.message) {
-            drawSpeechBubble(player.x, player.y, player.message, bubbleOpacity);
+        // Only draw if on screen (with some margin for bubbles)
+        if (screenPos.x > -100 && screenPos.x < canvas.width + 100 &&
+            screenPos.y > -100 && screenPos.y < canvas.height + 100) {
+
+            // Calculate bubble opacity
+            let bubbleOpacity = 1;
+            if (player.message && player.messageTime) {
+                const elapsed = now - player.messageTime;
+                if (elapsed > BUBBLE_DURATION - BUBBLE_FADE_TIME) {
+                    bubbleOpacity = Math.max(0, 1 - (elapsed - (BUBBLE_DURATION - BUBBLE_FADE_TIME)) / BUBBLE_FADE_TIME);
+                }
+                if (elapsed > BUBBLE_DURATION) {
+                    player.message = null;
+                }
+            }
+
+            drawCharacter(screenPos.x, screenPos.y, false, player.bobOffset || 0);
+            if (player.message) {
+                drawSpeechBubble(screenPos.x, screenPos.y, player.message, bubbleOpacity);
+            }
         }
     });
 
     // Draw me (in front)
+    const myScreenPos = worldToScreen(me.x, me.y);
+
     let myBubbleOpacity = 1;
     if (me.message && me.messageTime) {
         const elapsed = now - me.messageTime;
@@ -240,9 +303,9 @@ function render() {
         }
     }
 
-    drawCharacter(me.x, me.y, true, me.bobOffset);
+    drawCharacter(myScreenPos.x, myScreenPos.y, true, me.bobOffset);
     if (me.message) {
-        drawSpeechBubble(me.x, me.y, me.message, myBubbleOpacity);
+        drawSpeechBubble(myScreenPos.x, myScreenPos.y, me.message, myBubbleOpacity);
     }
 
     requestAnimationFrame(render);
@@ -380,7 +443,73 @@ sendBtn.addEventListener('click', () => {
     chatInput.focus();
 });
 
+// Touch/mouse pan controls
+canvas.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) {
+        isDragging = true;
+        lastTouchX = e.touches[0].clientX;
+        lastTouchY = e.touches[0].clientY;
+    }
+}, { passive: true });
+
+canvas.addEventListener('touchmove', (e) => {
+    if (isDragging && e.touches.length === 1) {
+        const deltaX = lastTouchX - e.touches[0].clientX;
+        const deltaY = lastTouchY - e.touches[0].clientY;
+
+        cameraX += deltaX;
+        cameraY += deltaY;
+        clampCamera();
+
+        lastTouchX = e.touches[0].clientX;
+        lastTouchY = e.touches[0].clientY;
+    }
+}, { passive: true });
+
+canvas.addEventListener('touchend', () => {
+    isDragging = false;
+}, { passive: true });
+
+// Mouse drag for desktop
+canvas.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    lastTouchX = e.clientX;
+    lastTouchY = e.clientY;
+    canvas.style.cursor = 'grabbing';
+});
+
+canvas.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+        const deltaX = lastTouchX - e.clientX;
+        const deltaY = lastTouchY - e.clientY;
+
+        cameraX += deltaX;
+        cameraY += deltaY;
+        clampCamera();
+
+        lastTouchX = e.clientX;
+        lastTouchY = e.clientY;
+    }
+});
+
+canvas.addEventListener('mouseup', () => {
+    isDragging = false;
+    canvas.style.cursor = 'default';
+});
+
+canvas.addEventListener('mouseleave', () => {
+    isDragging = false;
+    canvas.style.cursor = 'default';
+});
+
+// Center camera on resize
+window.addEventListener('resize', () => {
+    resizeCanvas();
+    clampCamera();
+});
+
 // Start everything
+centerCameraOnMe();
 render();
 connectToLobby();
 
