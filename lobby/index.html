@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Lobby</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f5f0e8;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        .header {
+            padding: 20px;
+            text-align: center;
+            width: 100%;
+            background: linear-gradient(to bottom, #f5f0e8, transparent);
+            position: fixed;
+            top: 0;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .header h1 {
+            font-family: 'Caveat', cursive;
+            font-size: 42px;
+            color: #2d2d2d;
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .online-count {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #2d2d2d;
+            color: #f5f0e8;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .online-dot {
+            width: 8px;
+            height: 8px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        #canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: default;
+        }
+
+        .chat-container {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .chat-input {
+            width: 320px;
+            padding: 14px 20px;
+            border: 2px solid #2d2d2d;
+            border-radius: 30px;
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            background: #fff;
+            outline: none;
+            transition: all 0.2s;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .chat-input:focus {
+            border-color: #666;
+            box-shadow: 0 4px 25px rgba(0,0,0,0.12);
+        }
+
+        .chat-input::placeholder {
+            color: #aaa;
+        }
+
+        .send-btn {
+            width: 48px;
+            height: 48px;
+            border: 2px solid #2d2d2d;
+            border-radius: 50%;
+            background: #2d2d2d;
+            color: #f5f0e8;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+            background: #444;
+        }
+
+        .send-btn:active {
+            transform: scale(0.95);
+        }
+
+        .hint {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+        }
+
+        .connecting-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #f5f0e8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.5s;
+        }
+
+        .connecting-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .connecting-overlay h2 {
+            font-family: 'Caveat', cursive;
+            font-size: 36px;
+            color: #2d2d2d;
+            margin-bottom: 20px;
+        }
+
+        .loader {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #ddd;
+            border-top-color: #2d2d2d;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Notebook paper texture effect */
+        #canvas {
+            background-image:
+                linear-gradient(#e8e0d5 1px, transparent 1px);
+            background-size: 100% 30px;
+            background-position: 0 -1px;
+        }
+
+        /* Mobile styles */
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 32px;
+            }
+
+            .header p {
+                font-size: 12px;
+            }
+
+            .online-count {
+                top: 15px;
+                right: 15px;
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+
+            .chat-container {
+                bottom: 20px;
+                left: 10px;
+                right: 10px;
+                transform: none;
+                width: auto;
+            }
+
+            .chat-input {
+                width: 100%;
+                flex: 1;
+                padding: 12px 16px;
+                font-size: 16px; /* Prevents iOS zoom */
+            }
+
+            .send-btn {
+                width: 44px;
+                height: 44px;
+                flex-shrink: 0;
+            }
+
+            .hint {
+                display: none;
+            }
+        }
+
+        /* Touch feedback */
+        .send-btn:active {
+            transform: scale(0.9);
+            background: #444;
+        }
+
+        /* Prevent text selection on mobile */
+        body {
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        .chat-input {
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
+        /* Emote button and picker */
+        .emote-btn {
+            width: 48px;
+            height: 48px;
+            border: 2px solid #2d2d2d;
+            border-radius: 50%;
+            background: #fff;
+            font-size: 22px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .emote-btn:hover {
+            transform: scale(1.05);
+            background: #f5f0e8;
+        }
+
+        .emote-picker {
+            position: absolute;
+            bottom: 60px;
+            left: 0;
+            background: #fff;
+            border: 2px solid #2d2d2d;
+            border-radius: 25px;
+            padding: 8px 12px;
+            display: none;
+            gap: 4px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .emote-picker.show {
+            display: flex;
+        }
+
+        .emote-option {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: transparent;
+            font-size: 24px;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .emote-option:hover {
+            background: #f5f0e8;
+            transform: scale(1.2);
+        }
+
+        @media (max-width: 600px) {
+            .emote-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 20px;
+            }
+
+            .emote-picker {
+                bottom: 55px;
+                padding: 6px 8px;
+            }
+
+            .emote-option {
+                width: 36px;
+                height: 36px;
+                font-size: 20px;
+            }
+        }
+
+        /* Hat button and picker */
+        .hat-btn {
+            width: 48px;
+            height: 48px;
+            border: 2px solid #2d2d2d;
+            border-radius: 50%;
+            background: #fff;
+            font-size: 22px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .hat-btn:hover {
+            transform: scale(1.05);
+            background: #f5f0e8;
+        }
+
+        .hat-picker {
+            position: absolute;
+            bottom: 60px;
+            right: 58px;
+            background: #fff;
+            border: 2px solid #2d2d2d;
+            border-radius: 20px;
+            padding: 10px;
+            display: none;
+            flex-wrap: wrap;
+            gap: 6px;
+            max-width: 200px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .hat-picker.show {
+            display: flex;
+        }
+
+        .hat-option {
+            width: 44px;
+            height: 44px;
+            border: 2px solid transparent;
+            background: #f5f0e8;
+            font-size: 22px;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hat-option:hover {
+            background: #e8e0d5;
+            transform: scale(1.1);
+            border-color: #2d2d2d;
+        }
+
+        .hat-option.locked {
+            opacity: 0.4;
+            filter: grayscale(1);
+            cursor: not-allowed;
+        }
+
+        .hat-option.locked:hover {
+            transform: none;
+            border-color: transparent;
+            background: #f5f0e8;
+        }
+
+        /* Bubble button and picker */
+        .bubble-btn {
+            width: 48px;
+            height: 48px;
+            border: 2px solid #2d2d2d;
+            border-radius: 50%;
+            background: #fff;
+            font-size: 22px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .bubble-btn:hover {
+            transform: scale(1.05);
+            background: #f5f0e8;
+        }
+
+        .bubble-picker {
+            position: absolute;
+            bottom: 60px;
+            right: 0;
+            background: #fff;
+            border: 2px solid #2d2d2d;
+            border-radius: 20px;
+            padding: 10px;
+            display: none;
+            flex-wrap: wrap;
+            gap: 6px;
+            max-width: 200px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .bubble-picker.show {
+            display: flex;
+        }
+
+        .bubble-option {
+            width: 44px;
+            height: 44px;
+            border: 2px solid transparent;
+            background: #f5f0e8;
+            font-size: 22px;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .bubble-option:hover {
+            background: #e8e0d5;
+            transform: scale(1.1);
+            border-color: #2d2d2d;
+        }
+
+        .bubble-option.locked {
+            opacity: 0.4;
+            filter: grayscale(1);
+            cursor: not-allowed;
+        }
+
+        .bubble-option.locked:hover {
+            transform: none;
+            border-color: transparent;
+            background: #f5f0e8;
+        }
+
+        @media (max-width: 600px) {
+            .hat-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 20px;
+            }
+
+            .hat-picker {
+                bottom: 55px;
+                right: 0;
+                padding: 8px;
+                max-width: 180px;
+            }
+
+            .hat-option {
+                width: 38px;
+                height: 38px;
+                font-size: 18px;
+            }
+
+            .bubble-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 20px;
+            }
+
+            .bubble-picker {
+                bottom: 55px;
+                right: 0;
+                padding: 8px;
+                max-width: 180px;
+            }
+
+            .bubble-option {
+                width: 38px;
+                height: 38px;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="connecting-overlay" id="connecting">
+        <h2>Entering the lobby...</h2>
+        <div class="loader"></div>
+    </div>
+
+    <div class="header">
+        <h1>The Lobby</h1>
+        <p>a place to just exist</p>
+    </div>
+
+    <div class="online-count">
+        <div class="online-dot"></div>
+        <span id="online-count">1 here</span>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <div class="hint">press enter to send a message</div>
+    <div class="chat-container">
+        <button class="emote-btn" id="emote-btn">😊</button>
+        <div class="emote-picker" id="emote-picker">
+            <button class="emote-option" data-emote="sad">😢</button>
+            <button class="emote-option" data-emote="love">😍</button>
+            <button class="emote-option" data-emote="laugh">😂</button>
+            <button class="emote-option" data-emote="sleepy">😴</button>
+            <button class="emote-option" data-emote="surprised">😮</button>
+        </div>
+        <input type="text" class="chat-input" id="chat-input" placeholder="say something..." maxlength="100" autocomplete="off">
+        <button class="send-btn" id="send-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+        </button>
+        <button class="hat-btn" id="hat-btn">🎩</button>
+        <div class="hat-picker" id="hat-picker">
+            <button class="hat-option" data-hat="none">🚫</button>
+            <button class="hat-option" data-hat="tophat">🎩</button>
+            <button class="hat-option" data-hat="cowboy">🤠</button>
+            <button class="hat-option" data-hat="halo">😇</button>
+        </div>
+        <button class="bubble-btn" id="bubble-btn">💬</button>
+        <div class="bubble-picker" id="bubble-picker">
+            <button class="bubble-option" data-bubble="default">💬</button>
+            <button class="bubble-option" data-bubble="chalk">✏️</button>
+            <button class="bubble-option" data-bubble="night">🌙</button>
+            <button class="bubble-option" data-bubble="golden">✨</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="lobby.js"></script>
+</body>
+</html>

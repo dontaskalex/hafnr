@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/lobby", "destination": "/lobby/index.html" },
+    { "source": "/lobby/(.*)", "destination": "/lobby/$1" }
+  ]
+}
