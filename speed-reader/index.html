@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speed Reader | hafnr</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&family=Literata:opsz,wght@7..72,400;7..72,700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            color: #e5e5e5;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 40px;
+        }
+
+        .back-link {
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 20px;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: #999;
+        }
+
+        h1 {
+            font-family: 'Space Mono', monospace;
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            margin-bottom: 8px;
+        }
+
+        .tagline {
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Reader Display */
+        .reader-display {
+            background: #141414;
+            border: 1px solid #222;
+            border-radius: 16px;
+            padding: 60px 40px;
+            margin-bottom: 24px;
+            min-height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .word-container {
+            font-family: 'Literata', Georgia, serif;
+            font-size: 52px;
+            font-weight: 400;
+            white-space: nowrap;
+            position: relative;
+            width: 100%;
+            height: 70px;
+        }
+
+        .word-container .before {
+            color: #e5e5e5;
+            position: absolute;
+            right: calc(50% + 0.5ch);
+            text-align: right;
+        }
+
+        .word-container .focus {
+            color: #ff4444;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .word-container .after {
+            color: #e5e5e5;
+            position: absolute;
+            left: calc(50% + 0.5ch);
+        }
+
+
+        .placeholder-text {
+            color: #444;
+            font-size: 16px;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+        }
+
+        .progress-bar {
+            height: 3px;
+            background: #222;
+            border-radius: 2px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #ff4444;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: #222;
+            border: 1px solid #333;
+            color: #e5e5e5;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn:hover {
+            background: #2a2a2a;
+            border-color: #444;
+        }
+
+        .btn.primary {
+            background: #ff4444;
+            border-color: #ff4444;
+            color: #fff;
+        }
+
+        .btn.primary:hover {
+            background: #ff5555;
+            border-color: #ff5555;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Speed Control */
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding: 16px 20px;
+            background: #141414;
+            border: 1px solid #222;
+            border-radius: 12px;
+        }
+
+        .speed-label {
+            font-size: 14px;
+            color: #888;
+            min-width: 50px;
+        }
+
+        .speed-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            background: #222;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .speed-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #ff4444;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .speed-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        .speed-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: #ff4444;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .speed-value {
+            font-family: 'Space Mono', monospace;
+            font-size: 16px;
+            font-weight: 700;
+            color: #ff4444;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        /* Text Input */
+        .input-section {
+            margin-top: 32px;
+        }
+
+        .input-label {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .text-input {
+            width: 100%;
+            min-height: 200px;
+            background: #141414;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 20px;
+            color: #e5e5e5;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.7;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .text-input:focus {
+            border-color: #444;
+        }
+
+        .text-input::placeholder {
+            color: #444;
+        }
+
+        .stats {
+            display: flex;
+            gap: 24px;
+            margin-top: 16px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stat-value {
+            color: #888;
+            font-family: 'Space Mono', monospace;
+        }
+
+        /* Keyboard hint */
+        .keyboard-hint {
+            margin-top: 24px;
+            padding: 16px;
+            background: #111;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .keyboard-hint kbd {
+            background: #222;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            color: #888;
+            border: 1px solid #333;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 24px 16px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+
+            .word-container {
+                font-size: 32px;
+            }
+
+            .reader-display {
+                padding: 40px 20px;
+                min-height: 140px;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .speed-control {
+                flex-wrap: wrap;
+            }
+
+            .speed-slider {
+                order: 3;
+                width: 100%;
+                margin-top: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="/" class="back-link">← back to hafnr</a>
+            <h1>Speed Reader</h1>
+            <p class="tagline">RSVP-style reading with focus highlighting</p>
+        </header>
+
+        <div class="reader-display">
+            <div class="word-container" id="wordDisplay">
+                <span class="placeholder-text">Paste text below to begin</span>
+            </div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="controls">
+            <button class="btn primary" id="playPauseBtn" disabled>Play</button>
+            <button class="btn" id="restartBtn" disabled>Restart</button>
+        </div>
+
+        <div class="speed-control">
+            <span class="speed-label">Speed</span>
+            <input type="range" class="speed-slider" id="speedSlider" min="100" max="1000" value="300" step="25">
+            <span class="speed-value" id="speedValue">300 WPM</span>
+        </div>
+
+        <section class="input-section">
+            <label class="input-label" for="textInput">Paste your text</label>
+            <textarea
+                class="text-input"
+                id="textInput"
+                placeholder="Paste any text here and click Play to start speed reading..."
+            ></textarea>
+            <div class="stats">
+                <span class="stat">Words: <span class="stat-value" id="wordCount">0</span></span>
+                <span class="stat">Est. time: <span class="stat-value" id="estTime">0:00</span></span>
+            </div>
+        </section>
+
+        <div class="keyboard-hint">
+            <kbd>Space</kbd> Play/Pause &nbsp;&nbsp;
+            <kbd>R</kbd> Restart &nbsp;&nbsp;
+            <kbd>←</kbd> <kbd>→</kbd> Adjust speed
+        </div>
+    </div>
+
+    <script>
+        const wordDisplay = document.getElementById('wordDisplay');
+        const progressFill = document.getElementById('progressFill');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const speedSlider = document.getElementById('speedSlider');
+        const speedValue = document.getElementById('speedValue');
+        const textInput = document.getElementById('textInput');
+        const wordCountEl = document.getElementById('wordCount');
+        const estTimeEl = document.getElementById('estTime');
+
+        let words = [];
+        let currentIndex = 0;
+        let isPlaying = false;
+        let intervalId = null;
+        let wpm = 300;
+
+        // Calculate ORP (Optimal Recognition Point) - roughly 1/3 into the word
+        function getORP(word) {
+            const len = word.length;
+            if (len <= 1) return 0;
+            if (len <= 3) return 0;
+            if (len <= 5) return 1;
+            if (len <= 9) return 2;
+            if (len <= 13) return 3;
+            return Math.floor(len * 0.3);
+        }
+
+        function displayWord(word) {
+            if (!word) {
+                wordDisplay.innerHTML = '<span class="placeholder-text">Paste text below to begin</span>';
+                return;
+            }
+
+            const orpIndex = getORP(word);
+            const before = word.slice(0, orpIndex);
+            const focus = word[orpIndex];
+            const after = word.slice(orpIndex + 1);
+
+            wordDisplay.innerHTML = `<span class="before">${before}</span><span class="focus">${focus}</span><span class="after">${after}</span>`;
+        }
+
+        function updateProgress() {
+            const progress = words.length > 0 ? (currentIndex / words.length) * 100 : 0;
+            progressFill.style.width = `${progress}%`;
+        }
+
+        function play() {
+            if (words.length === 0) return;
+
+            isPlaying = true;
+            playPauseBtn.textContent = 'Pause';
+
+            const interval = 60000 / wpm;
+
+            intervalId = setInterval(() => {
+                if (currentIndex >= words.length) {
+                    pause();
+                    currentIndex = words.length - 1;
+                    return;
+                }
+
+                displayWord(words[currentIndex]);
+                updateProgress();
+                currentIndex++;
+            }, interval);
+        }
+
+        function pause() {
+            isPlaying = false;
+            playPauseBtn.textContent = 'Play';
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+        }
+
+        function restart() {
+            pause();
+            currentIndex = 0;
+            updateProgress();
+            if (words.length > 0) {
+                displayWord(words[0]);
+            }
+        }
+
+        function parseText(text) {
+            // Split by whitespace and filter empty strings
+            return text.trim().split(/\s+/).filter(word => word.length > 0);
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updateStats() {
+            const count = words.length;
+            wordCountEl.textContent = count;
+            const seconds = (count / wpm) * 60;
+            estTimeEl.textContent = formatTime(seconds);
+        }
+
+        function updateSpeed(newWpm) {
+            wpm = newWpm;
+            speedValue.textContent = `${wpm} WPM`;
+            updateStats();
+
+            // If playing, restart with new speed
+            if (isPlaying) {
+                pause();
+                play();
+            }
+        }
+
+        // Event listeners
+        textInput.addEventListener('input', () => {
+            words = parseText(textInput.value);
+            currentIndex = 0;
+            updateStats();
+            updateProgress();
+
+            const hasText = words.length > 0;
+            playPauseBtn.disabled = !hasText;
+            restartBtn.disabled = !hasText;
+
+            if (hasText) {
+                displayWord(words[0]);
+            } else {
+                displayWord(null);
+            }
+        });
+
+        playPauseBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                pause();
+            } else {
+                if (currentIndex >= words.length) {
+                    currentIndex = 0;
+                }
+                play();
+            }
+        });
+
+        restartBtn.addEventListener('click', restart);
+
+        speedSlider.addEventListener('input', (e) => {
+            updateSpeed(parseInt(e.target.value));
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Don't trigger shortcuts when typing in textarea
+            if (e.target === textInput) return;
+
+            switch (e.code) {
+                case 'Space':
+                    e.preventDefault();
+                    playPauseBtn.click();
+                    break;
+                case 'KeyR':
+                    restartBtn.click();
+                    break;
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    speedSlider.value = Math.max(100, wpm - 25);
+                    updateSpeed(parseInt(speedSlider.value));
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    speedSlider.value = Math.min(1000, wpm + 25);
+                    updateSpeed(parseInt(speedSlider.value));
+                    break;
+            }
+        });
+
+        // Initialize
+        updateSpeed(300);
+    </script>
+</body>
+</html>
