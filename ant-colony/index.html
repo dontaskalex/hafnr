@@ -6,7 +6,7 @@
     <title>Ant Colony - hafnr</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -15,21 +15,19 @@
         }
 
         :root {
-            --bg: #1a1510;
-            --surface: #211c14;
-            --border: #3a3020;
-            --text: #e4e4e7;
-            --text-muted: #a09080;
-            --ant-color: #1a1a1a;
-            --pheromone-food: rgba(80, 200, 120, 0.3);
-            --pheromone-home: rgba(100, 150, 255, 0.2);
+            --bg: #1a1a12;
+            --surface: #252518;
+            --border: #3a3a28;
+            --text: #e8e4d8;
+            --text-muted: #a8a090;
+            --accent: #c4a060;
         }
 
         body {
             background: var(--bg);
             min-height: 100vh;
             min-height: 100dvh;
-            font-family: 'IBM Plex Sans', system-ui, sans-serif;
+            font-family: 'Crimson Pro', Georgia, serif;
             color: var(--text);
             overflow: hidden;
             touch-action: none;
@@ -63,104 +61,134 @@
             gap: 6px;
             color: var(--text-muted);
             text-decoration: none;
-            font-size: 13px;
-            padding: 8px 12px;
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 8px;
-            backdrop-filter: blur(8px);
-            transition: all 0.15s ease;
+            font-size: 14px;
+            padding: 10px 14px;
+            background: rgba(20, 20, 15, 0.85);
+            border: 1px solid rgba(100, 90, 70, 0.3);
+            border-radius: 6px;
+            backdrop-filter: blur(12px);
+            transition: all 0.2s ease;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            letter-spacing: 0.5px;
         }
 
         .back-link:hover {
             color: var(--text);
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(30, 30, 20, 0.9);
+            border-color: rgba(140, 120, 80, 0.4);
         }
 
         .info-panel {
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(8px);
-            border-radius: 10px;
-            padding: 12px 14px;
-            font-size: 12px;
+            background: rgba(20, 20, 15, 0.85);
+            border: 1px solid rgba(100, 90, 70, 0.3);
+            backdrop-filter: blur(12px);
+            border-radius: 8px;
+            padding: 16px 18px;
+            font-size: 14px;
             color: var(--text-muted);
-            max-width: 220px;
+            max-width: 240px;
         }
 
         .info-panel h3 {
-            font-family: 'Space Mono', monospace;
-            font-size: 13px;
-            color: var(--text);
-            margin-bottom: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--accent);
+            margin-bottom: 12px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
 
         .stat-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
+            font-size: 13px;
         }
 
         .stat-value {
             color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
             font-weight: 500;
         }
 
         .instructions {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            line-height: 1.5;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(100, 90, 70, 0.2);
+            line-height: 1.6;
+            font-size: 13px;
+            font-style: italic;
+            color: rgba(168, 160, 144, 0.8);
         }
 
         .food-selector {
             position: fixed;
-            bottom: 16px;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 8px;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(8px);
-            border-radius: 12px;
-            padding: 8px;
+            gap: 6px;
+            background: rgba(20, 20, 15, 0.9);
+            border: 1px solid rgba(100, 90, 70, 0.3);
+            backdrop-filter: blur(12px);
+            border-radius: 10px;
+            padding: 10px 14px;
             z-index: 100;
-        }
-
-        .food-btn {
-            width: 44px;
-            height: 44px;
-            border: 2px solid transparent;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            cursor: pointer;
-            font-size: 20px;
-            display: flex;
             align-items: center;
-            justify-content: center;
-            transition: all 0.15s ease;
-        }
-
-        .food-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .food-btn.active {
-            border-color: rgba(255, 255, 255, 0.5);
-            background: rgba(255, 255, 255, 0.15);
         }
 
         .food-label {
             color: var(--text-muted);
             font-size: 12px;
-            margin-right: 4px;
-            align-self: center;
+            margin-right: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.5px;
         }
 
-        .food-btn .size-indicator {
+        .food-btn {
+            width: 48px;
+            height: 48px;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            background: rgba(60, 50, 35, 0.4);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .food-btn::before {
+            content: '';
             position: absolute;
-            bottom: 2px;
-            right: 2px;
-            font-size: 8px;
-            color: var(--text-muted);
+            inset: 0;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1), transparent 60%);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .food-btn:hover::before {
+            opacity: 1;
+        }
+
+        .food-btn:hover {
+            background: rgba(80, 70, 50, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .food-btn.active {
+            border-color: var(--accent);
+            background: rgba(100, 80, 50, 0.4);
+            box-shadow: 0 0 20px rgba(196, 160, 96, 0.2);
+        }
+
+        .food-btn span {
+            font-size: 22px;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
         }
 
         @media (max-width: 600px) {
@@ -175,12 +203,16 @@
 
             .food-selector {
                 bottom: 12px;
+                padding: 8px 10px;
             }
 
             .food-btn {
-                width: 40px;
-                height: 40px;
-                font-size: 18px;
+                width: 42px;
+                height: 42px;
+            }
+
+            .food-label {
+                display: none;
             }
         }
     </style>
@@ -190,7 +222,7 @@
 
     <div class="ui-overlay">
         <a href="/" class="back-link">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <path d="M19 12H5M12 19l-7-7 7-7"/>
             </svg>
             back
@@ -202,44 +234,43 @@
                 <span class="stat-value" id="colony-level">1</span>
             </div>
             <div class="stat-row">
-                <span>Ants</span>
+                <span>Population</span>
                 <span class="stat-value" id="ant-count">0</span>
             </div>
             <div class="stat-row">
-                <span>Food collected</span>
+                <span>Food stored</span>
                 <span class="stat-value" id="food-collected">0</span>
             </div>
             <div class="stat-row">
-                <span>Food on ground</span>
+                <span>Food nearby</span>
                 <span class="stat-value" id="food-available">0</span>
             </div>
             <div class="instructions">
-                Click or drag to drop food.<br>
-                Watch the ants discover it and work together to carry it home.
+                Drop morsels on the forest floor and observe the colony at work.
             </div>
         </div>
     </div>
 
     <div class="food-selector">
-        <span class="food-label">Drop food:</span>
-        <button class="food-btn active" data-food="crumb" title="Crumb (tiny)">
-            <span>·</span>
+        <span class="food-label">drop:</span>
+        <button class="food-btn active" data-food="crumb" title="Breadcrumb">
+            <span>🍞</span>
         </button>
-        <button class="food-btn" data-food="morsel" title="Morsel (small)">
-            <span>•</span>
+        <button class="food-btn" data-food="morsel" title="Apple piece">
+            <span>🍎</span>
         </button>
-        <button class="food-btn" data-food="chunk" title="Chunk (medium)">
-            <span>●</span>
+        <button class="food-btn" data-food="chunk" title="Cookie">
+            <span>🍪</span>
         </button>
-        <button class="food-btn" data-food="feast" title="Feast (large)">
-            <span>⬤</span>
+        <button class="food-btn" data-food="feast" title="Sandwich">
+            <span>🥪</span>
         </button>
     </div>
 
     <script>
         // ===========================================
         // ANT COLONY SIMULATION
-        // Based on real ant behavior research
+        // Forest floor aesthetic with realistic behavior
         // ===========================================
 
         const canvas = document.getElementById('canvas');
@@ -258,50 +289,266 @@
             // Colony
             nestX: 0,
             nestY: 0,
-            nestRadius: 30,
-            initialAnts: 60,
-            maxAnts: 200,
+            nestRadius: 35,
+            initialAnts: 50,
+            maxAnts: 250,
 
             // Ant properties
-            antSpeed: 0.8,              // Base speed in pixels per frame
-            antSize: 5,                 // Body length
-            carryCapacity: 10,          // Max weight one ant can carry (1x = crumb)
-            dragThreshold: 3,           // Weight threshold to switch to dragging
-            turnRate: 0.15,             // How sharply ants can turn (radians)
-            wanderStrength: 0.3,        // Random turning when exploring
+            antSpeed: 0.7,
+            antSize: 6,
+            carryCapacity: 8,
+            dragThreshold: 3,
+            turnRate: 0.15,
+            wanderStrength: 0.25,
 
             // Pheromones
-            pheromoneGridSize: 8,       // Grid cell size in pixels
-            pheromoneDecay: 0.997,      // Decay multiplier per frame (~2min half-life at 60fps)
-            pheromoneDeposit: 1.0,      // Base deposit amount
-            pheromoneMax: 255,          // Max pheromone value
-            pheromoneFollowStrength: 0.4,
+            pheromoneGridSize: 10,
+            pheromoneDecay: 0.996,
+            pheromoneDeposit: 1.2,
+            pheromoneMax: 255,
+            pheromoneFollowStrength: 0.35,
 
-            // Food
+            // Food types with realistic properties
             foodTypes: {
-                crumb:  { weight: 1, radius: 2, color: '#c4a060', value: 1 },
-                morsel: { weight: 3, radius: 4, color: '#b08040', value: 3 },
-                chunk:  { weight: 8, radius: 7, color: '#a06030', value: 8 },
-                feast:  { weight: 25, radius: 12, color: '#904020', value: 25 }
+                crumb:  { weight: 1, radius: 3, value: 1, name: 'breadcrumb' },
+                morsel: { weight: 4, radius: 5, value: 4, name: 'apple' },
+                chunk:  { weight: 12, radius: 8, value: 10, name: 'cookie' },
+                feast:  { weight: 35, radius: 14, value: 30, name: 'sandwich' }
             },
 
             // Recruitment
-            recruitmentRadius: 40,      // Radius around nest entrance for recruitment
-            recruitmentChance: 0.02,    // Chance per frame for idle ant to be recruited
+            recruitmentRadius: 50,
+            recruitmentChance: 0.015,
         };
 
-        // Position nest in center-ish area
         CONFIG.nestX = width * 0.5;
         CONFIG.nestY = height * 0.6;
 
         // ===========================================
+        // FOREST FLOOR DECORATION
+        // ===========================================
+
+        let forestElements = [];
+
+        function generateForestElements() {
+            forestElements = [];
+            const numElements = Math.floor((width * height) / 8000);
+
+            for (let i = 0; i < numElements; i++) {
+                const type = Math.random();
+                let element;
+
+                if (type < 0.3) {
+                    // Fallen leaf
+                    element = {
+                        type: 'leaf',
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        size: 8 + Math.random() * 15,
+                        rotation: Math.random() * Math.PI * 2,
+                        color: ['#5a4020', '#6b4a25', '#4a3518', '#7a5530', '#8b6040'][Math.floor(Math.random() * 5)],
+                        alpha: 0.3 + Math.random() * 0.4
+                    };
+                } else if (type < 0.5) {
+                    // Small pebble
+                    element = {
+                        type: 'pebble',
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        size: 2 + Math.random() * 5,
+                        color: ['#3a3530', '#4a4540', '#2a2825', '#5a5550'][Math.floor(Math.random() * 4)],
+                        alpha: 0.5 + Math.random() * 0.3
+                    };
+                } else if (type < 0.65) {
+                    // Twig
+                    element = {
+                        type: 'twig',
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        length: 15 + Math.random() * 30,
+                        rotation: Math.random() * Math.PI,
+                        thickness: 1 + Math.random() * 2,
+                        color: '#3d2a1a',
+                        alpha: 0.4 + Math.random() * 0.3
+                    };
+                } else if (type < 0.75) {
+                    // Grass blade
+                    element = {
+                        type: 'grass',
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        height: 10 + Math.random() * 20,
+                        curve: (Math.random() - 0.5) * 0.5,
+                        color: ['#2a3a20', '#354528', '#283820', '#3a4a30'][Math.floor(Math.random() * 4)],
+                        alpha: 0.3 + Math.random() * 0.3
+                    };
+                } else if (type < 0.82) {
+                    // Moss patch
+                    element = {
+                        type: 'moss',
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        size: 10 + Math.random() * 25,
+                        color: '#2a3a22',
+                        alpha: 0.2 + Math.random() * 0.2
+                    };
+                } else if (type < 0.88) {
+                    // Acorn cap
+                    element = {
+                        type: 'acorn',
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        size: 4 + Math.random() * 4,
+                        rotation: Math.random() * Math.PI * 2,
+                        alpha: 0.5 + Math.random() * 0.3
+                    };
+                } else {
+                    // Small mushroom
+                    element = {
+                        type: 'mushroom',
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        size: 3 + Math.random() * 5,
+                        alpha: 0.4 + Math.random() * 0.3
+                    };
+                }
+
+                // Don't place too close to nest
+                const distToNest = Math.hypot(element.x - CONFIG.nestX, element.y - CONFIG.nestY);
+                if (distToNest > CONFIG.nestRadius * 2.5) {
+                    forestElements.push(element);
+                }
+            }
+        }
+
+        function drawForestElement(el) {
+            ctx.save();
+            ctx.globalAlpha = el.alpha;
+
+            switch (el.type) {
+                case 'leaf':
+                    ctx.translate(el.x, el.y);
+                    ctx.rotate(el.rotation);
+                    ctx.fillStyle = el.color;
+                    // Leaf shape
+                    ctx.beginPath();
+                    ctx.moveTo(0, -el.size * 0.5);
+                    ctx.quadraticCurveTo(el.size * 0.4, -el.size * 0.2, el.size * 0.3, el.size * 0.3);
+                    ctx.quadraticCurveTo(0, el.size * 0.5, -el.size * 0.3, el.size * 0.3);
+                    ctx.quadraticCurveTo(-el.size * 0.4, -el.size * 0.2, 0, -el.size * 0.5);
+                    ctx.fill();
+                    // Vein
+                    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+                    ctx.lineWidth = 0.5;
+                    ctx.beginPath();
+                    ctx.moveTo(0, -el.size * 0.4);
+                    ctx.lineTo(0, el.size * 0.4);
+                    ctx.stroke();
+                    break;
+
+                case 'pebble':
+                    ctx.fillStyle = el.color;
+                    ctx.beginPath();
+                    ctx.ellipse(el.x, el.y, el.size, el.size * 0.7, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Highlight
+                    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+                    ctx.beginPath();
+                    ctx.ellipse(el.x - el.size * 0.2, el.y - el.size * 0.2, el.size * 0.3, el.size * 0.2, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    break;
+
+                case 'twig':
+                    ctx.translate(el.x, el.y);
+                    ctx.rotate(el.rotation);
+                    ctx.strokeStyle = el.color;
+                    ctx.lineWidth = el.thickness;
+                    ctx.lineCap = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(-el.length / 2, 0);
+                    ctx.lineTo(el.length / 2, 0);
+                    ctx.stroke();
+                    // Small branch
+                    if (el.length > 20) {
+                        ctx.lineWidth = el.thickness * 0.6;
+                        ctx.beginPath();
+                        ctx.moveTo(el.length * 0.2, 0);
+                        ctx.lineTo(el.length * 0.35, -el.length * 0.15);
+                        ctx.stroke();
+                    }
+                    break;
+
+                case 'grass':
+                    ctx.strokeStyle = el.color;
+                    ctx.lineWidth = 1.5;
+                    ctx.lineCap = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(el.x, el.y);
+                    ctx.quadraticCurveTo(
+                        el.x + el.curve * el.height,
+                        el.y - el.height * 0.6,
+                        el.x + el.curve * el.height * 1.5,
+                        el.y - el.height
+                    );
+                    ctx.stroke();
+                    break;
+
+                case 'moss':
+                    ctx.fillStyle = el.color;
+                    for (let i = 0; i < 8; i++) {
+                        const angle = (i / 8) * Math.PI * 2;
+                        const dist = el.size * (0.3 + Math.random() * 0.7);
+                        const blobSize = el.size * 0.2 + Math.random() * el.size * 0.15;
+                        ctx.beginPath();
+                        ctx.arc(el.x + Math.cos(angle) * dist, el.y + Math.sin(angle) * dist, blobSize, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    break;
+
+                case 'acorn':
+                    ctx.translate(el.x, el.y);
+                    ctx.rotate(el.rotation);
+                    // Cap
+                    ctx.fillStyle = '#4a3a28';
+                    ctx.beginPath();
+                    ctx.ellipse(0, -el.size * 0.3, el.size * 0.8, el.size * 0.4, 0, 0, Math.PI);
+                    ctx.fill();
+                    // Cap texture
+                    ctx.fillStyle = '#3a2a18';
+                    for (let i = 0; i < 5; i++) {
+                        ctx.beginPath();
+                        ctx.arc((i - 2) * el.size * 0.25, -el.size * 0.2, el.size * 0.12, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    break;
+
+                case 'mushroom':
+                    // Stem
+                    ctx.fillStyle = '#d8d0c0';
+                    ctx.fillRect(el.x - el.size * 0.15, el.y - el.size * 0.3, el.size * 0.3, el.size * 0.6);
+                    // Cap
+                    ctx.fillStyle = '#8a6040';
+                    ctx.beginPath();
+                    ctx.ellipse(el.x, el.y - el.size * 0.4, el.size * 0.5, el.size * 0.3, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Cap highlight
+                    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+                    ctx.beginPath();
+                    ctx.ellipse(el.x - el.size * 0.15, el.y - el.size * 0.5, el.size * 0.15, el.size * 0.1, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    break;
+            }
+
+            ctx.restore();
+        }
+
+        // ===========================================
         // PHEROMONE GRID
-        // Two layers: food trail and home trail
         // ===========================================
 
         let pheromoneGrid = {
-            food: null,   // Trails to food
-            home: null,   // Trails back to nest
+            food: null,
+            home: null,
             cols: 0,
             rows: 0
         };
@@ -339,9 +586,8 @@
         }
 
         function samplePheromoneDirection(x, y, currentAngle, type) {
-            // Sample pheromone in three directions: left, center, right
-            const sampleDist = 12;
-            const sampleAngle = 0.5; // ~30 degrees
+            const sampleDist = 15;
+            const sampleAngle = 0.5;
 
             const leftAngle = currentAngle - sampleAngle;
             const rightAngle = currentAngle + sampleAngle;
@@ -362,9 +608,8 @@
                 type
             );
 
-            // Return turn direction based on strongest pheromone
             if (center >= left && center >= right) {
-                return 0; // Go straight
+                return 0;
             } else if (left > right) {
                 return -sampleAngle * CONFIG.pheromoneFollowStrength;
             } else {
@@ -377,14 +622,13 @@
             for (let i = 0; i < pheromoneGrid.food.length; i++) {
                 pheromoneGrid.food[i] *= decay;
                 pheromoneGrid.home[i] *= decay;
-                // Clear very small values to prevent buildup
                 if (pheromoneGrid.food[i] < 0.01) pheromoneGrid.food[i] = 0;
                 if (pheromoneGrid.home[i] < 0.01) pheromoneGrid.home[i] = 0;
             }
         }
 
         // ===========================================
-        // FOOD ITEMS
+        // FOOD ITEMS - Realistic appearances
         // ===========================================
 
         let foodItems = [];
@@ -398,16 +642,16 @@
                 const config = CONFIG.foodTypes[type];
                 this.weight = config.weight;
                 this.radius = config.radius;
-                this.color = config.color;
                 this.value = config.value;
+                this.name = config.name;
                 this.originalWeight = config.weight;
-                this.carriers = [];  // Ants currently carrying this
+                this.carriers = [];
                 this.beingBrokenDown = false;
                 this.breakdownProgress = 0;
+                this.rotation = Math.random() * Math.PI * 2;
             }
 
             canBeCarriedBy(numAnts) {
-                // Each ant can carry up to carryCapacity weight
                 return this.weight <= numAnts * CONFIG.carryCapacity;
             }
 
@@ -428,18 +672,16 @@
                 }
             }
 
-            // Break off a piece if too heavy for current ants
             breakOffPiece() {
                 if (this.weight <= 1) return null;
 
                 const pieceWeight = Math.min(CONFIG.carryCapacity, Math.floor(this.weight / 2));
                 this.weight -= pieceWeight;
                 this.value = Math.ceil(this.value * (this.weight / this.originalWeight));
-                this.radius = Math.max(2, this.radius * Math.sqrt(this.weight / this.originalWeight));
+                this.radius = Math.max(3, this.radius * Math.sqrt(this.weight / this.originalWeight));
 
-                // Create new smaller piece
                 const angle = Math.random() * Math.PI * 2;
-                const dist = this.radius + 3;
+                const dist = this.radius + 4;
                 const piece = new FoodItem(
                     this.x + Math.cos(angle) * dist,
                     this.y + Math.sin(angle) * dist,
@@ -447,10 +689,146 @@
                 );
                 piece.weight = pieceWeight;
                 piece.value = pieceWeight;
-                piece.radius = Math.max(2, 2 * Math.sqrt(pieceWeight));
-                piece.color = this.color;
+                piece.radius = Math.max(2, 3 * Math.sqrt(pieceWeight));
+                piece.name = this.name + ' piece';
 
                 return piece;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+
+                // Shadow
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+                ctx.beginPath();
+                ctx.ellipse(2, 3, this.radius * 1.1, this.radius * 0.5, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                const r = this.radius;
+
+                switch (this.name) {
+                    case 'breadcrumb':
+                        // Irregular bread crumb shape
+                        ctx.fillStyle = '#d4a050';
+                        ctx.beginPath();
+                        ctx.moveTo(-r * 0.8, -r * 0.3);
+                        ctx.quadraticCurveTo(-r * 0.5, -r * 0.9, r * 0.2, -r * 0.7);
+                        ctx.quadraticCurveTo(r * 0.9, -r * 0.4, r * 0.7, r * 0.3);
+                        ctx.quadraticCurveTo(r * 0.3, r * 0.8, -r * 0.4, r * 0.6);
+                        ctx.quadraticCurveTo(-r * 0.9, r * 0.2, -r * 0.8, -r * 0.3);
+                        ctx.fill();
+                        // Texture
+                        ctx.fillStyle = '#c49040';
+                        ctx.beginPath();
+                        ctx.arc(-r * 0.2, -r * 0.1, r * 0.25, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.fillStyle = '#e4b060';
+                        ctx.beginPath();
+                        ctx.arc(r * 0.1, r * 0.2, r * 0.15, 0, Math.PI * 2);
+                        ctx.fill();
+                        break;
+
+                    case 'apple':
+                        // Apple chunk - red with white flesh visible
+                        ctx.fillStyle = '#f8f0e0';  // Flesh
+                        ctx.beginPath();
+                        ctx.arc(0, 0, r * 0.9, 0, Math.PI * 2);
+                        ctx.fill();
+                        // Red skin on edge
+                        ctx.fillStyle = '#c82020';
+                        ctx.beginPath();
+                        ctx.arc(0, 0, r, Math.PI * 0.3, Math.PI * 1.2);
+                        ctx.lineTo(0, 0);
+                        ctx.fill();
+                        // Seeds
+                        ctx.fillStyle = '#4a3020';
+                        ctx.beginPath();
+                        ctx.ellipse(-r * 0.2, r * 0.1, r * 0.12, r * 0.06, -0.3, 0, Math.PI * 2);
+                        ctx.fill();
+                        // Browning
+                        ctx.fillStyle = 'rgba(139, 90, 43, 0.15)';
+                        ctx.beginPath();
+                        ctx.arc(r * 0.2, -r * 0.2, r * 0.4, 0, Math.PI * 2);
+                        ctx.fill();
+                        break;
+
+                    case 'cookie':
+                        // Chocolate chip cookie
+                        ctx.fillStyle = '#d4a050';
+                        ctx.beginPath();
+                        ctx.arc(0, 0, r, 0, Math.PI * 2);
+                        ctx.fill();
+                        // Cookie edge texture
+                        ctx.fillStyle = '#c49040';
+                        ctx.beginPath();
+                        ctx.arc(0, 0, r, 0, Math.PI * 2);
+                        ctx.stroke();
+                        // Chocolate chips
+                        const chips = [[0.3, -0.4], [-0.4, 0.2], [0.2, 0.4], [-0.2, -0.2], [0.5, 0.1]];
+                        ctx.fillStyle = '#3a2010';
+                        chips.forEach(([cx, cy]) => {
+                            ctx.beginPath();
+                            ctx.ellipse(cx * r, cy * r, r * 0.18, r * 0.14, Math.random(), 0, Math.PI * 2);
+                            ctx.fill();
+                        });
+                        // Highlight
+                        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+                        ctx.beginPath();
+                        ctx.ellipse(-r * 0.3, -r * 0.3, r * 0.3, r * 0.2, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        break;
+
+                    case 'sandwich':
+                    default:
+                        // Sandwich piece - layered
+                        // Bottom bread
+                        ctx.fillStyle = '#c49040';
+                        ctx.fillRect(-r, r * 0.2, r * 2, r * 0.5);
+                        // Lettuce
+                        ctx.fillStyle = '#5a8030';
+                        ctx.beginPath();
+                        ctx.moveTo(-r, r * 0.2);
+                        for (let i = 0; i <= 8; i++) {
+                            ctx.lineTo(-r + (i / 8) * r * 2, r * 0.15 + Math.sin(i * 1.5) * r * 0.15);
+                        }
+                        ctx.lineTo(r, r * 0.2);
+                        ctx.fill();
+                        // Meat/filling
+                        ctx.fillStyle = '#d08080';
+                        ctx.fillRect(-r * 0.9, -r * 0.1, r * 1.8, r * 0.35);
+                        // Cheese
+                        ctx.fillStyle = '#f0c020';
+                        ctx.fillRect(-r * 0.85, -r * 0.3, r * 1.7, r * 0.25);
+                        // Top bread
+                        ctx.fillStyle = '#d4a050';
+                        ctx.beginPath();
+                        ctx.moveTo(-r, -r * 0.3);
+                        ctx.lineTo(-r, -r * 0.6);
+                        ctx.quadraticCurveTo(0, -r * 0.9, r, -r * 0.6);
+                        ctx.lineTo(r, -r * 0.3);
+                        ctx.fill();
+                        // Bread texture
+                        ctx.fillStyle = '#c49040';
+                        ctx.beginPath();
+                        ctx.arc(0, -r * 0.5, r * 0.15, 0, Math.PI * 2);
+                        ctx.fill();
+                        break;
+                }
+
+                // Breaking indicator
+                if (this.beingBrokenDown) {
+                    ctx.strokeStyle = 'rgba(255, 220, 150, 0.6)';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([4, 4]);
+                    ctx.beginPath();
+                    ctx.arc(0, 0, r + 5, 0, Math.PI * 2 * this.breakdownProgress);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+
+                ctx.restore();
             }
         }
 
@@ -459,7 +837,7 @@
         }
 
         // ===========================================
-        // ANTS
+        // ANTS - More visible with better contrast
         // ===========================================
 
         let ants = [];
@@ -470,26 +848,20 @@
                 this.y = y;
                 this.angle = Math.random() * Math.PI * 2;
                 this.speed = CONFIG.antSpeed * (0.9 + Math.random() * 0.2);
-
-                // State machine
-                this.state = 'exploring';  // exploring, returning, carrying, breaking
+                this.state = 'exploring';
                 this.targetFood = null;
                 this.carriedFood = null;
-
-                // Behavior parameters (individual variation)
                 this.wanderBias = (Math.random() - 0.5) * 0.1;
-                this.isScout = Math.random() < 0.15;  // 15% are scouts - more exploratory
-
-                // Trail laying
+                this.isScout = Math.random() < 0.12;
                 this.depositTimer = 0;
                 this.foundFoodRecently = false;
-
-                // Animation
                 this.legPhase = Math.random() * Math.PI * 2;
+                // Individual color variation
+                this.colorOffset = Math.floor(Math.random() * 20) - 10;
             }
 
             update() {
-                this.legPhase += 0.3;
+                this.legPhase += 0.25;
 
                 switch (this.state) {
                     case 'exploring':
@@ -506,39 +878,29 @@
                         break;
                 }
 
-                // Keep ants on screen
                 this.bounceOffWalls();
             }
 
             explore() {
-                // Scouts wander more randomly, workers follow pheromones
-                if (this.isScout || Math.random() < 0.3) {
-                    // Random correlated walk (systematic meandering)
+                if (this.isScout || Math.random() < 0.25) {
                     this.angle += (Math.random() - 0.5) * CONFIG.wanderStrength + this.wanderBias;
                 } else {
-                    // Follow food pheromones
                     const turn = samplePheromoneDirection(this.x, this.y, this.angle, 'food');
-                    this.angle += turn + (Math.random() - 0.5) * CONFIG.wanderStrength * 0.5;
+                    this.angle += turn + (Math.random() - 0.5) * CONFIG.wanderStrength * 0.4;
                 }
 
-                // Deposit home pheromone (so returning ants can find way back)
                 this.depositTimer++;
-                if (this.depositTimer > 5) {
-                    // Deposit more near nest
+                if (this.depositTimer > 6) {
                     const distToNest = this.distanceToNest();
-                    const amount = CONFIG.pheromoneDeposit * Math.max(0.2, 1 - distToNest / 300);
+                    const amount = CONFIG.pheromoneDeposit * Math.max(0.15, 1 - distToNest / 350);
                     depositPheromone(this.x, this.y, 'home', amount);
                     this.depositTimer = 0;
                 }
 
-                // Move
                 this.move();
-
-                // Check for food
                 this.checkForFood();
 
-                // Return to nest periodically (stochastic reset)
-                if (Math.random() < 0.0005) {
+                if (Math.random() < 0.0004) {
                     this.state = 'returning';
                     this.foundFoodRecently = false;
                 }
@@ -547,18 +909,13 @@
             checkForFood() {
                 for (const food of foodItems) {
                     const dist = Math.hypot(this.x - food.x, this.y - food.y);
-                    if (dist < food.radius + 5) {
-                        // Found food!
+                    if (dist < food.radius + 8) {
                         if (food.canBeCarriedBy(1) && food.carriers.length === 0) {
-                            // Small enough to carry alone
                             this.pickUpFood(food);
                         } else if (food.carriers.length < food.getRequiredAnts()) {
-                            // Join other carriers
                             this.joinCarrying(food);
                         } else {
-                            // Food needs to be broken down or has enough carriers
-                            // Deposit strong food pheromone to recruit more
-                            depositPheromone(this.x, this.y, 'food', CONFIG.pheromoneDeposit * 5);
+                            depositPheromone(this.x, this.y, 'food', CONFIG.pheromoneDeposit * 6);
                             this.state = 'returning';
                             this.foundFoodRecently = true;
                         }
@@ -584,65 +941,56 @@
             carryFood() {
                 const food = this.targetFood;
                 if (!food || !foodItems.includes(food)) {
-                    // Food was delivered or disappeared
                     this.carriedFood = null;
                     this.targetFood = null;
                     this.state = 'exploring';
                     return;
                 }
 
-                // Check if enough ants to carry
                 if (!food.canBeCarriedBy(food.carriers.length)) {
-                    // Need more ants or need to break it down
                     if (food.carriers.length >= 3 && food.weight > CONFIG.carryCapacity) {
-                        // Start breaking it down
                         this.state = 'breaking';
                         food.beingBrokenDown = true;
                     } else {
-                        // Wait for more ants, deposit pheromone
-                        depositPheromone(food.x, food.y, 'food', CONFIG.pheromoneDeposit * 3);
-                        // Circle around the food
+                        depositPheromone(food.x, food.y, 'food', CONFIG.pheromoneDeposit * 4);
                         const angleToFood = Math.atan2(food.y - this.y, food.x - this.x);
                         this.angle = angleToFood + Math.PI / 2;
-                        this.x += Math.cos(this.angle) * this.speed * 0.3;
-                        this.y += Math.sin(this.angle) * this.speed * 0.3;
+                        this.x += Math.cos(this.angle) * this.speed * 0.25;
+                        this.y += Math.sin(this.angle) * this.speed * 0.25;
                     }
                     return;
                 }
 
-                // Move food toward nest
                 const angleToNest = Math.atan2(CONFIG.nestY - food.y, CONFIG.nestX - food.x);
 
-                // Speed depends on weight and number of carriers
-                const speedFactor = Math.min(1, food.carriers.length * CONFIG.carryCapacity / food.weight);
-                const moveSpeed = this.speed * 0.5 * speedFactor;
+                // MUCH SLOWER carrying for heavy items
+                const weightRatio = food.weight / CONFIG.carryCapacity;
+                const carrierEfficiency = food.carriers.length / food.getRequiredAnts();
+                // Heavy items move very slowly even with enough carriers
+                const baseSpeedReduction = Math.max(0.08, 0.5 / (1 + weightRatio * 0.5));
+                const speedFactor = baseSpeedReduction * Math.min(1, carrierEfficiency);
+                const moveSpeed = this.speed * speedFactor;
 
                 food.x += Math.cos(angleToNest) * moveSpeed;
                 food.y += Math.sin(angleToNest) * moveSpeed;
 
-                // Position ant near food
-                const offsetAngle = angleToNest + Math.PI + (food.carriers.indexOf(this) * 0.5);
-                this.x = food.x + Math.cos(offsetAngle) * (food.radius + 2);
-                this.y = food.y + Math.sin(offsetAngle) * (food.radius + 2);
+                const offsetAngle = angleToNest + Math.PI + (food.carriers.indexOf(this) * 0.6);
+                this.x = food.x + Math.cos(offsetAngle) * (food.radius + 4);
+                this.y = food.y + Math.sin(offsetAngle) * (food.radius + 4);
                 this.angle = angleToNest;
 
-                // Deposit food pheromone trail
                 this.depositTimer++;
-                if (this.depositTimer > 3) {
-                    // Deposit more near the food (22x more according to research)
+                if (this.depositTimer > 4) {
                     const distToNest = Math.hypot(CONFIG.nestX - food.x, CONFIG.nestY - food.y);
-                    const nearFoodBonus = Math.max(1, 10 - distToNest / 50);
+                    const nearFoodBonus = Math.max(1, 12 - distToNest / 40);
                     depositPheromone(this.x, this.y, 'food', CONFIG.pheromoneDeposit * nearFoodBonus);
                     this.depositTimer = 0;
                 }
 
-                // Check if reached nest
                 const distToNest = Math.hypot(CONFIG.nestX - food.x, CONFIG.nestY - food.y);
-                if (distToNest < CONFIG.nestRadius) {
-                    // Delivered!
+                if (distToNest < getColonySize()) {
                     foodCollected += food.value;
 
-                    // Remove food and release carriers
                     for (const carrier of food.carriers) {
                         carrier.carriedFood = null;
                         carrier.targetFood = null;
@@ -664,18 +1012,15 @@
                     return;
                 }
 
-                // Animate around the food (cutting behavior)
-                food.breakdownProgress += 0.01 * food.carriers.length;
+                food.breakdownProgress += 0.008 * food.carriers.length;
 
-                const offsetAngle = food.breakdownProgress * 2 + food.carriers.indexOf(this) * (Math.PI * 2 / food.carriers.length);
-                this.x = food.x + Math.cos(offsetAngle) * (food.radius + 2);
-                this.y = food.y + Math.sin(offsetAngle) * (food.radius + 2);
+                const offsetAngle = food.breakdownProgress * 2.5 + food.carriers.indexOf(this) * (Math.PI * 2 / food.carriers.length);
+                this.x = food.x + Math.cos(offsetAngle) * (food.radius + 4);
+                this.y = food.y + Math.sin(offsetAngle) * (food.radius + 4);
                 this.angle = offsetAngle + Math.PI;
 
-                // Deposit pheromone to attract more help
-                depositPheromone(food.x, food.y, 'food', CONFIG.pheromoneDeposit * 2);
+                depositPheromone(food.x, food.y, 'food', CONFIG.pheromoneDeposit * 2.5);
 
-                // Break off piece when ready
                 if (food.breakdownProgress >= 1) {
                     const piece = food.breakOffPiece();
                     if (piece) {
@@ -684,7 +1029,6 @@
                     food.breakdownProgress = 0;
                     food.beingBrokenDown = false;
 
-                    // Check if food is now small enough
                     if (food.canBeCarriedBy(food.carriers.length)) {
                         for (const carrier of food.carriers) {
                             carrier.state = 'carrying';
@@ -694,32 +1038,26 @@
             }
 
             returnToNest() {
-                // Follow home pheromones back to nest
                 const angleToNest = Math.atan2(CONFIG.nestY - this.y, CONFIG.nestX - this.x);
-
-                // Blend direct path with pheromone following
                 const pheromoneTurn = samplePheromoneDirection(this.x, this.y, this.angle, 'home');
-                const directTurn = this.angleDiff(angleToNest, this.angle) * 0.1;
+                const directTurn = this.angleDiff(angleToNest, this.angle) * 0.12;
 
-                this.angle += directTurn + pheromoneTurn * 0.5 + (Math.random() - 0.5) * 0.1;
+                this.angle += directTurn + pheromoneTurn * 0.4 + (Math.random() - 0.5) * 0.08;
 
-                // Deposit food pheromone if found food recently
                 if (this.foundFoodRecently) {
                     this.depositTimer++;
-                    if (this.depositTimer > 3) {
-                        depositPheromone(this.x, this.y, 'food', CONFIG.pheromoneDeposit * 2);
+                    if (this.depositTimer > 4) {
+                        depositPheromone(this.x, this.y, 'food', CONFIG.pheromoneDeposit * 2.5);
                         this.depositTimer = 0;
                     }
                 }
 
                 this.move();
 
-                // Check if reached nest
-                if (this.distanceToNest() < CONFIG.nestRadius) {
+                if (this.distanceToNest() < getColonySize()) {
                     this.state = 'exploring';
                     this.foundFoodRecently = false;
-                    // Turn around
-                    this.angle += Math.PI + (Math.random() - 0.5) * 1;
+                    this.angle += Math.PI + (Math.random() - 0.5) * 1.2;
                 }
             }
 
@@ -729,7 +1067,7 @@
             }
 
             bounceOffWalls() {
-                const margin = 10;
+                const margin = 15;
                 if (this.x < margin) {
                     this.x = margin;
                     this.angle = Math.PI - this.angle;
@@ -765,106 +1103,126 @@
                 ctx.rotate(this.angle);
 
                 const size = CONFIG.antSize;
-                const legWave = Math.sin(this.legPhase) * 0.4;
+                const legWave = Math.sin(this.legPhase) * 0.35;
 
-                // Ant body color - dark brown/black
-                const bodyColor = '#1a0a05';
-                const legColor = '#2a1510';
+                // Reddish-brown ant color - visible against forest floor
+                const r = 45 + this.colorOffset;
+                const g = 25 + this.colorOffset * 0.5;
+                const b = 15;
+                const bodyColor = `rgb(${r}, ${g}, ${b})`;
+                const darkColor = `rgb(${r - 15}, ${g - 10}, ${b - 5})`;
+                const legColor = `rgb(${r + 20}, ${g + 15}, ${b + 10})`;
 
-                // Draw legs first (behind body)
+                // Subtle shadow under ant
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                ctx.beginPath();
+                ctx.ellipse(0, 2, size * 1.2, size * 0.3, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw legs
                 ctx.strokeStyle = legColor;
-                ctx.lineWidth = size * 0.12;
+                ctx.lineWidth = size * 0.1;
                 ctx.lineCap = 'round';
 
-                // 6 legs - 3 on each side, attached to thorax
-                const legPositions = [-0.2, 0, 0.2]; // Along thorax
+                const legPositions = [-0.15, 0.05, 0.25];
                 for (let i = 0; i < 3; i++) {
                     const attachX = legPositions[i] * size;
                     const phase = (i === 1) ? -legWave : legWave;
 
-                    // Left leg (top in this orientation)
+                    // Left legs
                     ctx.beginPath();
-                    ctx.moveTo(attachX, -size * 0.15);
-                    const leftKneeX = attachX - size * 0.3;
-                    const leftKneeY = -size * 0.5 - phase * size * 0.2;
-                    const leftFootX = attachX - size * 0.15;
-                    const leftFootY = -size * 0.8 - phase * size * 0.15;
-                    ctx.quadraticCurveTo(leftKneeX, leftKneeY, leftFootX, leftFootY);
+                    ctx.moveTo(attachX, -size * 0.12);
+                    ctx.quadraticCurveTo(
+                        attachX - size * 0.25,
+                        -size * 0.45 - phase * size * 0.15,
+                        attachX - size * 0.1,
+                        -size * 0.7 - phase * size * 0.1
+                    );
                     ctx.stroke();
 
-                    // Right leg (bottom)
+                    // Right legs
                     ctx.beginPath();
-                    ctx.moveTo(attachX, size * 0.15);
-                    const rightKneeX = attachX - size * 0.3;
-                    const rightKneeY = size * 0.5 + phase * size * 0.2;
-                    const rightFootX = attachX - size * 0.15;
-                    const rightFootY = size * 0.8 + phase * size * 0.15;
-                    ctx.quadraticCurveTo(rightKneeX, rightKneeY, rightFootX, rightFootY);
+                    ctx.moveTo(attachX, size * 0.12);
+                    ctx.quadraticCurveTo(
+                        attachX - size * 0.25,
+                        size * 0.45 + phase * size * 0.15,
+                        attachX - size * 0.1,
+                        size * 0.7 + phase * size * 0.1
+                    );
                     ctx.stroke();
                 }
 
-                // GASTER (large rear abdomen) - the big back part
+                // GASTER (abdomen) - larger, oval
                 ctx.fillStyle = bodyColor;
                 ctx.beginPath();
-                ctx.ellipse(-size * 0.7, 0, size * 0.55, size * 0.4, 0, 0, Math.PI * 2);
+                ctx.ellipse(-size * 0.55, 0, size * 0.5, size * 0.35, 0, 0, Math.PI * 2);
                 ctx.fill();
-
-                // PETIOLE (narrow waist) - distinctive ant feature!
+                // Gaster segments/shine
+                ctx.fillStyle = darkColor;
                 ctx.beginPath();
-                ctx.ellipse(-size * 0.2, 0, size * 0.1, size * 0.08, 0, 0, Math.PI * 2);
+                ctx.ellipse(-size * 0.65, 0, size * 0.2, size * 0.28, 0, 0, Math.PI * 2);
                 ctx.fill();
 
-                // THORAX (middle section)
+                // PETIOLE (waist)
+                ctx.fillStyle = bodyColor;
                 ctx.beginPath();
-                ctx.ellipse(size * 0.15, 0, size * 0.3, size * 0.2, 0, 0, Math.PI * 2);
+                ctx.ellipse(-size * 0.1, 0, size * 0.1, size * 0.07, 0, 0, Math.PI * 2);
                 ctx.fill();
 
-                // HEAD (front)
+                // THORAX
                 ctx.beginPath();
-                ctx.ellipse(size * 0.55, 0, size * 0.22, size * 0.2, 0, 0, Math.PI * 2);
+                ctx.ellipse(size * 0.2, 0, size * 0.28, size * 0.18, 0, 0, Math.PI * 2);
                 ctx.fill();
 
-                // ANTENNAE - elbowed like real ants
+                // HEAD
+                ctx.beginPath();
+                ctx.ellipse(size * 0.55, 0, size * 0.2, size * 0.18, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Eyes (small dots)
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.arc(size * 0.6, -size * 0.1, size * 0.04, 0, Math.PI * 2);
+                ctx.arc(size * 0.6, size * 0.1, size * 0.04, 0, Math.PI * 2);
+                ctx.fill();
+
+                // ANTENNAE
                 ctx.strokeStyle = legColor;
-                ctx.lineWidth = size * 0.08;
-                const antennaWave = Math.sin(this.legPhase * 0.7) * 0.15;
+                ctx.lineWidth = size * 0.06;
+                const antennaWave = Math.sin(this.legPhase * 0.6) * 0.12;
 
-                // Left antenna (elbowed)
                 ctx.beginPath();
-                ctx.moveTo(size * 0.7, -size * 0.12);
-                ctx.lineTo(size * 0.9, -size * 0.25); // scape (first segment)
-                ctx.lineTo(size * 1.1, -size * 0.2 + antennaWave * size); // funiculus
+                ctx.moveTo(size * 0.68, -size * 0.1);
+                ctx.lineTo(size * 0.85, -size * 0.22);
+                ctx.lineTo(size * 1.0, -size * 0.18 + antennaWave * size);
                 ctx.stroke();
 
-                // Right antenna
                 ctx.beginPath();
-                ctx.moveTo(size * 0.7, size * 0.12);
-                ctx.lineTo(size * 0.9, size * 0.25);
-                ctx.lineTo(size * 1.1, size * 0.2 - antennaWave * size);
+                ctx.moveTo(size * 0.68, size * 0.1);
+                ctx.lineTo(size * 0.85, size * 0.22);
+                ctx.lineTo(size * 1.0, size * 0.18 - antennaWave * size);
                 ctx.stroke();
 
                 // MANDIBLES
-                ctx.lineWidth = size * 0.1;
+                ctx.lineWidth = size * 0.07;
                 ctx.beginPath();
-                ctx.moveTo(size * 0.72, -size * 0.08);
-                ctx.lineTo(size * 0.88, -size * 0.12);
+                ctx.moveTo(size * 0.7, -size * 0.06);
+                ctx.lineTo(size * 0.82, -size * 0.1);
                 ctx.stroke();
                 ctx.beginPath();
-                ctx.moveTo(size * 0.72, size * 0.08);
-                ctx.lineTo(size * 0.88, size * 0.12);
+                ctx.moveTo(size * 0.7, size * 0.06);
+                ctx.lineTo(size * 0.82, size * 0.1);
                 ctx.stroke();
 
                 ctx.restore();
             }
         }
 
-        // Initialize ants
         function initAnts() {
             ants = [];
             for (let i = 0; i < CONFIG.initialAnts; i++) {
-                // Start near nest
                 const angle = Math.random() * Math.PI * 2;
-                const dist = Math.random() * CONFIG.nestRadius * 0.8;
+                const dist = Math.random() * CONFIG.nestRadius * 0.7;
                 ants.push(new Ant(
                     CONFIG.nestX + Math.cos(angle) * dist,
                     CONFIG.nestY + Math.sin(angle) * dist
@@ -877,19 +1235,55 @@
         // ===========================================
 
         function drawGround() {
-            // Sandy/dirt background
-            ctx.fillStyle = '#1a1510';
+            // Rich forest floor gradient
+            const gradient = ctx.createRadialGradient(
+                width / 2, height / 2, 0,
+                width / 2, height / 2, Math.max(width, height) * 0.7
+            );
+            gradient.addColorStop(0, '#252518');
+            gradient.addColorStop(0.5, '#1e1e14');
+            gradient.addColorStop(1, '#151510');
+            ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, width, height);
 
-            // Subtle texture
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.01)';
-            for (let i = 0; i < 200; i++) {
-                const x = (i * 73) % width;
-                const y = (i * 97) % height;
+            // Noise texture overlay
+            ctx.fillStyle = 'rgba(40, 35, 25, 0.3)';
+            for (let i = 0; i < 400; i++) {
+                const x = (i * 73 + 17) % width;
+                const y = (i * 97 + 31) % height;
+                const size = 0.5 + Math.random() * 1.5;
                 ctx.beginPath();
-                ctx.arc(x, y, 1 + Math.random(), 0, Math.PI * 2);
+                ctx.arc(x, y, size, 0, Math.PI * 2);
                 ctx.fill();
             }
+
+            // Draw forest elements
+            for (const el of forestElements) {
+                drawForestElement(el);
+            }
+
+            // Vignette effect
+            const vignetteGradient = ctx.createRadialGradient(
+                width / 2, height / 2, Math.min(width, height) * 0.3,
+                width / 2, height / 2, Math.max(width, height) * 0.8
+            );
+            vignetteGradient.addColorStop(0, 'transparent');
+            vignetteGradient.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
+            ctx.fillStyle = vignetteGradient;
+            ctx.fillRect(0, 0, width, height);
+
+            // Edge shadows suggesting surrounding trees
+            const edgeShadow = ctx.createLinearGradient(0, 0, 0, height * 0.15);
+            edgeShadow.addColorStop(0, 'rgba(0, 10, 5, 0.5)');
+            edgeShadow.addColorStop(1, 'transparent');
+            ctx.fillStyle = edgeShadow;
+            ctx.fillRect(0, 0, width, height * 0.15);
+
+            const bottomShadow = ctx.createLinearGradient(0, height * 0.85, 0, height);
+            bottomShadow.addColorStop(0, 'transparent');
+            bottomShadow.addColorStop(1, 'rgba(0, 10, 5, 0.4)');
+            ctx.fillStyle = bottomShadow;
+            ctx.fillRect(0, height * 0.85, width, height * 0.15);
         }
 
         function drawPheromones() {
@@ -901,53 +1295,52 @@
                     const foodPh = pheromoneGrid.food[idx];
                     const homePh = pheromoneGrid.home[idx];
 
-                    if (foodPh > 0.5 || homePh > 0.5) {
+                    if (foodPh > 0.8 || homePh > 0.8) {
                         const x = col * cellSize;
                         const y = row * cellSize;
 
-                        // Food pheromone (greenish)
-                        if (foodPh > 0.5) {
-                            const alpha = Math.min(0.4, foodPh / CONFIG.pheromoneMax * 0.5);
-                            ctx.fillStyle = `rgba(80, 180, 100, ${alpha})`;
-                            ctx.fillRect(x, y, cellSize, cellSize);
+                        if (foodPh > 0.8) {
+                            const alpha = Math.min(0.35, foodPh / CONFIG.pheromoneMax * 0.45);
+                            ctx.fillStyle = `rgba(120, 180, 80, ${alpha})`;
+                            ctx.beginPath();
+                            ctx.arc(x + cellSize/2, y + cellSize/2, cellSize * 0.6, 0, Math.PI * 2);
+                            ctx.fill();
                         }
 
-                        // Home pheromone (bluish) - fainter
-                        if (homePh > 0.5) {
-                            const alpha = Math.min(0.15, homePh / CONFIG.pheromoneMax * 0.2);
-                            ctx.fillStyle = `rgba(100, 150, 255, ${alpha})`;
-                            ctx.fillRect(x, y, cellSize, cellSize);
+                        if (homePh > 0.8) {
+                            const alpha = Math.min(0.12, homePh / CONFIG.pheromoneMax * 0.15);
+                            ctx.fillStyle = `rgba(150, 180, 220, ${alpha})`;
+                            ctx.beginPath();
+                            ctx.arc(x + cellSize/2, y + cellSize/2, cellSize * 0.5, 0, Math.PI * 2);
+                            ctx.fill();
                         }
                     }
                 }
             }
         }
 
-        // Colony growth tracking
+        // Colony growth
         let colonyLevel = 1;
-        let nextLevelThreshold = 20;
+        let nextLevelThreshold = 25;
 
         function getColonySize() {
-            // Colony grows based on food collected
             const baseRadius = CONFIG.nestRadius;
-            const growth = Math.min(3, 1 + foodCollected / 50); // Max 3x size
+            const growth = Math.min(3.5, 1 + foodCollected / 40);
             return baseRadius * growth;
         }
 
         function updateColonyGrowth() {
-            // Check if we should level up
             if (foodCollected >= nextLevelThreshold && colonyLevel < 5) {
                 colonyLevel++;
-                nextLevelThreshold = nextLevelThreshold * 2.5;
+                nextLevelThreshold = Math.floor(nextLevelThreshold * 2.2);
 
-                // Spawn more ants when leveling up
-                const newAnts = 10 + colonyLevel * 5;
+                const newAnts = 12 + colonyLevel * 6;
                 for (let i = 0; i < newAnts; i++) {
                     if (ants.length < CONFIG.maxAnts) {
                         const angle = Math.random() * Math.PI * 2;
                         ants.push(new Ant(
-                            CONFIG.nestX + Math.cos(angle) * CONFIG.nestRadius * 0.5,
-                            CONFIG.nestY + Math.sin(angle) * CONFIG.nestRadius * 0.5
+                            CONFIG.nestX + Math.cos(angle) * CONFIG.nestRadius * 0.4,
+                            CONFIG.nestY + Math.sin(angle) * CONFIG.nestRadius * 0.4
                         ));
                     }
                 }
@@ -957,98 +1350,97 @@
         function drawNest() {
             const currentRadius = getColonySize();
 
-            // Dirt mound - multiple layers for 3D effect
-            // Outer scattered dirt
-            ctx.fillStyle = '#2a1f15';
-            for (let i = 0; i < 8 + colonyLevel * 3; i++) {
-                const angle = (i / (8 + colonyLevel * 3)) * Math.PI * 2 + Math.sin(i * 1.5) * 0.3;
-                const dist = currentRadius * (0.9 + Math.sin(i * 2.7) * 0.3);
-                const blobSize = currentRadius * (0.15 + Math.random() * 0.1);
+            // Excavated dirt ring
+            ctx.fillStyle = '#2d2518';
+            for (let i = 0; i < 12 + colonyLevel * 4; i++) {
+                const angle = (i / (12 + colonyLevel * 4)) * Math.PI * 2 + Math.sin(i * 1.3) * 0.25;
+                const dist = currentRadius * (1.0 + Math.sin(i * 2.3) * 0.25);
+                const blobSize = currentRadius * (0.12 + Math.sin(i * 3.7) * 0.06);
                 ctx.beginPath();
                 ctx.ellipse(
                     CONFIG.nestX + Math.cos(angle) * dist,
-                    CONFIG.nestY + Math.sin(angle) * dist * 0.6,
+                    CONFIG.nestY + Math.sin(angle) * dist * 0.55,
                     blobSize,
-                    blobSize * 0.6,
-                    0, 0, Math.PI * 2
+                    blobSize * 0.5,
+                    angle * 0.3, 0, Math.PI * 2
                 );
                 ctx.fill();
             }
 
-            // Main mound gradient
+            // Main mound
             const gradient = ctx.createRadialGradient(
-                CONFIG.nestX, CONFIG.nestY - currentRadius * 0.2, 0,
-                CONFIG.nestX, CONFIG.nestY, currentRadius * 1.3
+                CONFIG.nestX, CONFIG.nestY - currentRadius * 0.15, 0,
+                CONFIG.nestX, CONFIG.nestY, currentRadius * 1.2
             );
-            gradient.addColorStop(0, '#3d2d1f');
-            gradient.addColorStop(0.3, '#2a1f15');
-            gradient.addColorStop(0.7, '#1e1610');
+            gradient.addColorStop(0, '#4a3a28');
+            gradient.addColorStop(0.25, '#3d2d1f');
+            gradient.addColorStop(0.6, '#2a2018');
             gradient.addColorStop(1, 'transparent');
 
             ctx.fillStyle = gradient;
             ctx.beginPath();
-            ctx.ellipse(CONFIG.nestX, CONFIG.nestY, currentRadius * 1.2, currentRadius * 0.8, 0, 0, Math.PI * 2);
+            ctx.ellipse(CONFIG.nestX, CONFIG.nestY, currentRadius * 1.1, currentRadius * 0.7, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // Mound texture - small dirt particles
-            ctx.fillStyle = '#3a2a1a';
-            for (let i = 0; i < 15 + colonyLevel * 5; i++) {
+            // Dirt texture
+            ctx.fillStyle = '#3d2d1d';
+            for (let i = 0; i < 20 + colonyLevel * 6; i++) {
                 const angle = Math.random() * Math.PI * 2;
-                const dist = Math.random() * currentRadius * 0.9;
-                const size = 1.5 + Math.random() * 2;
+                const dist = Math.random() * currentRadius * 0.85;
+                const size = 1 + Math.random() * 2.5;
                 ctx.beginPath();
                 ctx.arc(
                     CONFIG.nestX + Math.cos(angle) * dist,
-                    CONFIG.nestY + Math.sin(angle) * dist * 0.6,
+                    CONFIG.nestY + Math.sin(angle) * dist * 0.55,
                     size, 0, Math.PI * 2
                 );
                 ctx.fill();
             }
 
-            // Central raised area
+            // Central mound
             const innerGradient = ctx.createRadialGradient(
-                CONFIG.nestX, CONFIG.nestY - currentRadius * 0.1, 0,
-                CONFIG.nestX, CONFIG.nestY, currentRadius * 0.6
+                CONFIG.nestX, CONFIG.nestY - currentRadius * 0.08, 0,
+                CONFIG.nestX, CONFIG.nestY, currentRadius * 0.55
             );
-            innerGradient.addColorStop(0, '#4a3a28');
-            innerGradient.addColorStop(0.5, '#3a2a1a');
-            innerGradient.addColorStop(1, '#2a1f15');
+            innerGradient.addColorStop(0, '#5a4a35');
+            innerGradient.addColorStop(0.4, '#4a3a28');
+            innerGradient.addColorStop(1, '#3a2a1a');
 
             ctx.fillStyle = innerGradient;
             ctx.beginPath();
-            ctx.ellipse(CONFIG.nestX, CONFIG.nestY, currentRadius * 0.5, currentRadius * 0.35, 0, 0, Math.PI * 2);
+            ctx.ellipse(CONFIG.nestX, CONFIG.nestY, currentRadius * 0.45, currentRadius * 0.32, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // Nest entrance hole (dark)
+            // Entrance hole
             const entranceGradient = ctx.createRadialGradient(
                 CONFIG.nestX, CONFIG.nestY, 0,
-                CONFIG.nestX, CONFIG.nestY, currentRadius * 0.25
+                CONFIG.nestX, CONFIG.nestY, currentRadius * 0.22
             );
-            entranceGradient.addColorStop(0, '#000000');
-            entranceGradient.addColorStop(0.7, '#0a0503');
-            entranceGradient.addColorStop(1, '#1a0f0a');
+            entranceGradient.addColorStop(0, '#080604');
+            entranceGradient.addColorStop(0.6, '#0f0a08');
+            entranceGradient.addColorStop(1, '#1a1210');
 
             ctx.fillStyle = entranceGradient;
             ctx.beginPath();
-            ctx.ellipse(CONFIG.nestX, CONFIG.nestY, currentRadius * 0.25, currentRadius * 0.18, 0, 0, Math.PI * 2);
+            ctx.ellipse(CONFIG.nestX, CONFIG.nestY, currentRadius * 0.22, currentRadius * 0.16, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // Entrance rim highlight
-            ctx.strokeStyle = '#4a3820';
-            ctx.lineWidth = 2;
+            // Entrance rim
+            ctx.strokeStyle = '#5a4830';
+            ctx.lineWidth = 1.5;
             ctx.beginPath();
-            ctx.ellipse(CONFIG.nestX, CONFIG.nestY, currentRadius * 0.28, currentRadius * 0.2, 0, 0, Math.PI * 2);
+            ctx.ellipse(CONFIG.nestX, CONFIG.nestY, currentRadius * 0.25, currentRadius * 0.18, 0, 0, Math.PI * 2);
             ctx.stroke();
 
-            // Colony level indicator (small dots around entrance)
-            ctx.fillStyle = '#5a4a30';
+            // Level indicator pebbles
+            ctx.fillStyle = '#6a5a40';
             for (let i = 0; i < colonyLevel; i++) {
-                const angle = (i / colonyLevel) * Math.PI * 2 - Math.PI / 2;
+                const angle = (i / Math.max(colonyLevel, 1)) * Math.PI * 2 - Math.PI / 2;
                 ctx.beginPath();
                 ctx.arc(
-                    CONFIG.nestX + Math.cos(angle) * currentRadius * 0.4,
-                    CONFIG.nestY + Math.sin(angle) * currentRadius * 0.28,
-                    3, 0, Math.PI * 2
+                    CONFIG.nestX + Math.cos(angle) * currentRadius * 0.38,
+                    CONFIG.nestY + Math.sin(angle) * currentRadius * 0.26,
+                    2.5, 0, Math.PI * 2
                 );
                 ctx.fill();
             }
@@ -1056,32 +1448,7 @@
 
         function drawFood() {
             for (const food of foodItems) {
-                // Shadow
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-                ctx.beginPath();
-                ctx.ellipse(food.x + 2, food.y + 2, food.radius, food.radius * 0.6, 0, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Food item
-                ctx.fillStyle = food.color;
-                ctx.beginPath();
-                ctx.arc(food.x, food.y, food.radius, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Highlight
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-                ctx.beginPath();
-                ctx.arc(food.x - food.radius * 0.3, food.y - food.radius * 0.3, food.radius * 0.3, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Breaking indicator
-                if (food.beingBrokenDown) {
-                    ctx.strokeStyle = 'rgba(255, 200, 100, 0.5)';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.arc(food.x, food.y, food.radius + 4, 0, Math.PI * 2 * food.breakdownProgress);
-                    ctx.stroke();
-                }
+                food.draw();
             }
         }
 
@@ -1107,7 +1474,6 @@
         let lastPlaceTime = 0;
         let showHint = true;
 
-        // Food selector buttons
         document.querySelectorAll('.food-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -1119,23 +1485,20 @@
             btn.addEventListener('touchstart', (e) => e.stopPropagation());
         });
 
-        // Prevent food selector from triggering canvas events
         document.querySelector('.food-selector').addEventListener('mousedown', (e) => e.stopPropagation());
         document.querySelector('.food-selector').addEventListener('touchstart', (e) => e.stopPropagation());
 
         function placeFood(x, y) {
             const now = Date.now();
-            // Throttle placement
-            const minInterval = selectedFoodType === 'crumb' ? 50 : 100;
+            const minInterval = selectedFoodType === 'crumb' ? 80 : 150;
             if (now - lastPlaceTime < minInterval) return;
             lastPlaceTime = now;
 
-            // Don't place too close to nest
             const distToNest = Math.hypot(x - CONFIG.nestX, y - CONFIG.nestY);
-            if (distToNest < CONFIG.nestRadius * 2) return;
+            if (distToNest < getColonySize() * 1.5) return;
 
             addFood(x, y, selectedFoodType);
-            showHint = false; // Hide hint after first food drop
+            showHint = false;
         }
 
         canvas.addEventListener('click', (e) => {
@@ -1162,7 +1525,6 @@
             isPlacing = false;
         });
 
-        // Touch support
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
             isPlacing = true;
@@ -1187,24 +1549,19 @@
         // ===========================================
 
         function update() {
-            // Update all ants
             for (const ant of ants) {
                 ant.update();
             }
 
-            // Decay pheromones
             decayPheromones();
-
-            // Update colony growth (check for level ups)
             updateColonyGrowth();
 
-            // Spawn new ants occasionally if food is being collected
-            if (ants.length < CONFIG.maxAnts && foodCollected > 0 && Math.random() < 0.003) {
+            if (ants.length < CONFIG.maxAnts && foodCollected > 0 && Math.random() < 0.0025) {
                 const angle = Math.random() * Math.PI * 2;
                 const currentRadius = getColonySize();
                 ants.push(new Ant(
-                    CONFIG.nestX + Math.cos(angle) * currentRadius * 0.5,
-                    CONFIG.nestY + Math.sin(angle) * currentRadius * 0.5
+                    CONFIG.nestX + Math.cos(angle) * currentRadius * 0.4,
+                    CONFIG.nestY + Math.sin(angle) * currentRadius * 0.4
                 ));
             }
         }
@@ -1213,20 +1570,19 @@
             if (!showHint) return;
 
             ctx.save();
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-            ctx.font = '16px "IBM Plex Sans", sans-serif';
+            ctx.fillStyle = 'rgba(232, 228, 216, 0.5)';
+            ctx.font = 'italic 15px "Crimson Pro", Georgia, serif';
             ctx.textAlign = 'center';
-            ctx.fillText('Click anywhere to drop food', width / 2, height * 0.25);
+            ctx.fillText('click to scatter food on the forest floor', width / 2, height * 0.22);
 
-            // Arrow pointing down
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'rgba(232, 228, 216, 0.3)';
+            ctx.lineWidth = 1.5;
             ctx.beginPath();
-            ctx.moveTo(width / 2, height * 0.28);
-            ctx.lineTo(width / 2, height * 0.35);
-            ctx.moveTo(width / 2 - 8, height * 0.33);
-            ctx.lineTo(width / 2, height * 0.35);
-            ctx.lineTo(width / 2 + 8, height * 0.33);
+            ctx.moveTo(width / 2, height * 0.25);
+            ctx.lineTo(width / 2, height * 0.32);
+            ctx.moveTo(width / 2 - 6, height * 0.30);
+            ctx.lineTo(width / 2, height * 0.32);
+            ctx.lineTo(width / 2 + 6, height * 0.30);
             ctx.stroke();
             ctx.restore();
         }
@@ -1247,7 +1603,6 @@
             requestAnimationFrame(gameLoop);
         }
 
-        // Resize function
         function resize() {
             dpr = window.devicePixelRatio || 1;
             width = window.innerWidth;
@@ -1259,17 +1614,15 @@
             ctx.scale(dpr, dpr);
             initPheromoneGrid();
             CONFIG.nestX = width * 0.5;
-            CONFIG.nestY = height * 0.65;
+            CONFIG.nestY = height * 0.6;
+            generateForestElements();
         }
 
         // Initialize
         resize();
         initAnts();
-
-        // Start the simulation
         gameLoop();
 
-        // Handle window resize
         window.addEventListener('resize', resize);
     </script>
 </body>
