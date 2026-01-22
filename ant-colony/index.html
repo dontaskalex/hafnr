@@ -1110,66 +1110,125 @@
             50% { box-shadow: 0 0 20px rgba(255, 60, 60, 0.6); }
         }
 
-        /* Upgrade Selection Modal */
+        /* Upgrade Selection Panel - Centered modal */
         .upgrade-modal {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: linear-gradient(165deg, rgba(20, 25, 18, 0.95), rgba(15, 18, 12, 0.98));
+            border: 2px solid rgba(184, 212, 104, 0.4);
+            border-radius: 16px;
+            padding: 24px;
             z-index: 2000;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.6), 0 0 30px rgba(184, 212, 104, 0.1);
+            min-width: 320px;
+            max-width: 400px;
             opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
+            pointer-events: none;
         }
 
         .upgrade-modal.visible {
+            transform: translate(-50%, -50%) scale(1);
             opacity: 1;
-            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .upgrade-modal.minimized {
+            transform: translate(-50%, -50%) scale(0.9);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .upgrade-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
         }
 
         .upgrade-title {
             font-family: 'Orbitron', sans-serif;
-            font-size: 32px;
+            font-size: 18px;
             color: var(--gold);
-            margin-bottom: 8px;
-            text-shadow: 0 0 20px rgba(244, 208, 63, 0.5);
-            letter-spacing: 4px;
+            text-shadow: 0 0 15px rgba(244, 208, 63, 0.4);
+            letter-spacing: 2px;
+        }
+
+        .upgrade-hide-btn {
+            background: rgba(184, 212, 104, 0.2);
+            border: 1px solid rgba(184, 212, 104, 0.4);
+            color: var(--accent);
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .upgrade-hide-btn:hover {
+            background: rgba(184, 212, 104, 0.3);
+            transform: scale(1.1);
         }
 
         .upgrade-subtitle {
             font-family: 'DM Mono', monospace;
-            font-size: 14px;
+            font-size: 11px;
             color: var(--text-muted);
-            margin-bottom: 32px;
-            letter-spacing: 2px;
+            margin-bottom: 16px;
+            letter-spacing: 1px;
+        }
+
+        .upgrade-timer {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            color: var(--gold);
+            text-align: center;
+            margin-bottom: 12px;
+            padding: 6px 12px;
+            background: rgba(244, 208, 63, 0.1);
+            border-radius: 6px;
+            border: 1px solid rgba(244, 208, 63, 0.3);
+        }
+
+        .upgrade-timer-bar {
+            height: 3px;
+            background: rgba(244, 208, 63, 0.2);
+            border-radius: 2px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+
+        .upgrade-timer-fill {
+            height: 100%;
+            background: var(--gold);
+            transition: width 1s linear;
         }
 
         .upgrade-options {
             display: flex;
-            gap: 24px;
-            justify-content: center;
-            flex-wrap: wrap;
-            max-width: 900px;
-            padding: 0 20px;
+            flex-direction: column;
+            gap: 12px;
         }
 
         .upgrade-card {
-            background: linear-gradient(165deg, rgba(30, 35, 28, 0.98), rgba(20, 24, 18, 0.99));
-            border: 2px solid rgba(184, 212, 104, 0.3);
-            border-radius: 12px;
-            padding: 28px 24px;
-            width: 240px;
-            text-align: center;
+            background: linear-gradient(165deg, rgba(30, 35, 28, 0.95), rgba(20, 24, 18, 0.98));
+            border: 2px solid rgba(184, 212, 104, 0.25);
+            border-radius: 10px;
+            padding: 14px 16px;
+            text-align: left;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+            transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
             position: relative;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .upgrade-card::before {
@@ -1177,17 +1236,17 @@
             position: absolute;
             top: 0;
             left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            bottom: 0;
+            width: 3px;
+            background: var(--accent);
             opacity: 0;
-            transition: opacity 0.3s;
+            transition: opacity 0.2s;
         }
 
         .upgrade-card:hover {
             border-color: var(--accent);
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(184, 212, 104, 0.2);
+            transform: translateX(-4px);
+            box-shadow: 4px 4px 20px rgba(0, 0, 0, 0.3), 0 0 20px rgba(184, 212, 104, 0.15);
         }
 
         .upgrade-card:hover::before {
@@ -1195,41 +1254,46 @@
         }
 
         .upgrade-card:active {
-            transform: translateY(-4px) scale(0.98);
+            transform: translateX(-2px) scale(0.98);
         }
 
         .upgrade-emoji {
-            font-size: 48px;
-            margin-bottom: 16px;
-            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+            font-size: 28px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            flex-shrink: 0;
+        }
+
+        .upgrade-info {
+            flex: 1;
+            min-width: 0;
         }
 
         .upgrade-name {
             font-family: 'Orbitron', sans-serif;
-            font-size: 16px;
+            font-size: 13px;
             color: var(--accent);
-            margin-bottom: 12px;
-            letter-spacing: 1px;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
         }
 
         .upgrade-desc {
             font-family: 'DM Mono', monospace;
-            font-size: 12px;
+            font-size: 10px;
             color: var(--text-muted);
-            line-height: 1.5;
+            line-height: 1.4;
         }
 
         .upgrade-stacks {
             position: absolute;
-            top: 12px;
-            right: 12px;
+            top: 8px;
+            right: 8px;
             background: var(--accent);
             color: var(--bg);
             font-family: 'Orbitron', sans-serif;
-            font-size: 11px;
+            font-size: 9px;
             font-weight: bold;
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 2px 6px;
+            border-radius: 3px;
         }
 
         /* Upgrade count display in UI */
@@ -1243,6 +1307,57 @@
             background: rgba(184, 212, 104, 0.1);
             border-radius: 6px;
             border: 1px solid rgba(184, 212, 104, 0.2);
+        }
+
+        /* Upgrade card wrapper for premium layout */
+        .upgrade-card-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        /* Premium upgrade option */
+        .upgrade-premium {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(165deg, rgba(244, 208, 63, 0.15), rgba(244, 180, 63, 0.1));
+            border: 1px solid rgba(244, 208, 63, 0.4);
+            border-radius: 6px;
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: 40px;
+        }
+
+        .upgrade-premium:hover:not(.disabled) {
+            background: linear-gradient(165deg, rgba(244, 208, 63, 0.25), rgba(244, 180, 63, 0.2));
+            border-color: var(--gold);
+            transform: translateX(-2px);
+        }
+
+        .upgrade-premium.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            filter: grayscale(0.5);
+        }
+
+        .premium-cost {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            color: var(--gold);
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(244, 208, 63, 0.4);
+            flex-shrink: 0;
+        }
+
+        .premium-desc {
+            font-family: 'DM Mono', monospace;
+            font-size: 9px;
+            color: var(--gold);
+            opacity: 0.85;
+            text-align: right;
+            margin-left: 12px;
         }
     </style>
 </head>
@@ -1369,10 +1484,19 @@
         </div>
     </div>
 
-    <!-- Upgrade Selection Modal -->
+    <!-- Upgrade Selection Panel -->
     <div id="upgrade-modal" class="upgrade-modal">
-        <div class="upgrade-title">EVOLUTION</div>
-        <div class="upgrade-subtitle">Choose an upgrade for your colony</div>
+        <div class="upgrade-header">
+            <div class="upgrade-title">EVOLVE</div>
+            <button class="upgrade-hide-btn" id="upgrade-hide-btn" title="Hide (still counting down)">◀</button>
+        </div>
+        <div class="upgrade-subtitle">Pick an upgrade</div>
+        <div class="upgrade-timer" id="upgrade-timer">
+            Auto-select in: <span id="upgrade-countdown">60</span>s
+            <div class="upgrade-timer-bar">
+                <div class="upgrade-timer-fill" id="upgrade-timer-fill" style="width: 100%"></div>
+            </div>
+        </div>
         <div class="upgrade-options" id="upgrade-options">
             <!-- Upgrade cards will be inserted here by JavaScript -->
         </div>
@@ -1826,7 +1950,7 @@
             if (gameOver) return;
 
             const elapsed = getElapsedSeconds();
-            const spawnInterval = 30;  // Every 30 seconds
+            const spawnInterval = 60;  // Every 60 seconds
 
             // Check if enough time has passed since last spawn
             if (elapsed >= spawnInterval && elapsed - lastPredatorSpawnTime >= spawnInterval) {
@@ -1855,7 +1979,9 @@
 
         let upgradesPaused = false;
         let lastUpgradeTime = 0;
-        const UPGRADE_INTERVAL = 20;  // Seconds between upgrade offers
+        const UPGRADE_INTERVAL = 60;  // Seconds between upgrade offers
+        const UPGRADE_CHOICE_TIMEOUT = 60;  // Seconds before auto-choosing
+        let upgradeChoiceStartTime = 0;  // When the current upgrade choice was shown
         let activeUpgrades = [];  // Track which upgrades player has chosen
         let upgradeMultipliers = {
             antSpeed: 1,
@@ -1878,7 +2004,12 @@
                 description: 'All ants move 15% faster',
                 emoji: '⚡',
                 apply: () => { upgradeMultipliers.antSpeed *= 1.15; },
-                maxStacks: 5
+                maxStacks: 5,
+                premium: {
+                    cost: 25,
+                    description: 'All ants move 35% faster',
+                    apply: () => { upgradeMultipliers.antSpeed *= 1.35; }
+                }
             },
             {
                 id: 'carry_boost',
@@ -1886,7 +2017,12 @@
                 description: 'Carry capacity +1 for all ants',
                 emoji: '💪',
                 apply: () => { upgradeMultipliers.carryCapacity += 0.25; },
-                maxStacks: 4
+                maxStacks: 4,
+                premium: {
+                    cost: 30,
+                    description: 'Carry capacity +3 for all ants',
+                    apply: () => { upgradeMultipliers.carryCapacity += 0.75; }
+                }
             },
             {
                 id: 'cheap_spawns',
@@ -1894,7 +2030,12 @@
                 description: 'Ant spawn costs reduced by 15%',
                 emoji: '🥚',
                 apply: () => { upgradeMultipliers.spawnCostReduction *= 0.85; },
-                maxStacks: 4
+                maxStacks: 4,
+                premium: {
+                    cost: 40,
+                    description: 'Ant spawn costs reduced by 40%',
+                    apply: () => { upgradeMultipliers.spawnCostReduction *= 0.6; }
+                }
             },
             {
                 id: 'food_value',
@@ -1902,7 +2043,12 @@
                 description: 'Food gives 25% more value',
                 emoji: '🍯',
                 apply: () => { upgradeMultipliers.foodValue *= 1.25; },
-                maxStacks: 4
+                maxStacks: 4,
+                premium: {
+                    cost: 35,
+                    description: 'Food gives 60% more value',
+                    apply: () => { upgradeMultipliers.foodValue *= 1.60; }
+                }
             },
             {
                 id: 'coin_bonus',
@@ -1910,7 +2056,12 @@
                 description: '+2 coins per food delivery',
                 emoji: '💰',
                 apply: () => { upgradeMultipliers.coinBonus += 2; },
-                maxStacks: 5
+                maxStacks: 5,
+                premium: {
+                    cost: 20,
+                    description: '+5 coins per food delivery',
+                    apply: () => { upgradeMultipliers.coinBonus += 5; }
+                }
             },
             {
                 id: 'max_ants',
@@ -1921,7 +2072,15 @@
                     upgradeMultipliers.maxAnts += 25;
                     CONFIG.maxAnts += 25;
                 },
-                maxStacks: 4
+                maxStacks: 4,
+                premium: {
+                    cost: 50,
+                    description: 'Max colony size +75 ants',
+                    apply: () => {
+                        upgradeMultipliers.maxAnts += 75;
+                        CONFIG.maxAnts += 75;
+                    }
+                }
             },
             {
                 id: 'detection',
@@ -1929,7 +2088,12 @@
                 description: 'Food detection radius +30%',
                 emoji: '👁️',
                 apply: () => { upgradeMultipliers.detectionRadius *= 1.3; },
-                maxStacks: 3
+                maxStacks: 3,
+                premium: {
+                    cost: 30,
+                    description: 'Food detection radius +75%',
+                    apply: () => { upgradeMultipliers.detectionRadius *= 1.75; }
+                }
             },
             {
                 id: 'free_worker',
@@ -1951,7 +2115,26 @@
                         }
                     }
                 },
-                maxStacks: 99
+                maxStacks: 99,
+                premium: {
+                    cost: 15,
+                    description: 'Instantly spawn 8 free workers',
+                    apply: () => {
+                        for (let i = 0; i < 8; i++) {
+                            if (ants.length < CONFIG.maxAnts) {
+                                const angle = Math.random() * Math.PI * 2;
+                                const dist = 30 + Math.random() * 20;
+                                const ant = new Ant(
+                                    CONFIG.nestX + Math.cos(angle) * dist,
+                                    CONFIG.nestY + Math.sin(angle) * dist,
+                                    'worker'
+                                );
+                                ants.push(ant);
+                                totalAntsSpawned++;
+                            }
+                        }
+                    }
+                }
             },
             {
                 id: 'free_soldier',
@@ -1973,7 +2156,26 @@
                         }
                     }
                 },
-                maxStacks: 99
+                maxStacks: 99,
+                premium: {
+                    cost: 25,
+                    description: 'Instantly spawn 5 free soldiers',
+                    apply: () => {
+                        for (let i = 0; i < 5; i++) {
+                            if (ants.length < CONFIG.maxAnts) {
+                                const angle = Math.random() * Math.PI * 2;
+                                const dist = 30 + Math.random() * 20;
+                                const ant = new Ant(
+                                    CONFIG.nestX + Math.cos(angle) * dist,
+                                    CONFIG.nestY + Math.sin(angle) * dist,
+                                    'soldier'
+                                );
+                                ants.push(ant);
+                                totalAntsSpawned++;
+                            }
+                        }
+                    }
+                }
             },
             {
                 id: 'atk_boost',
@@ -1981,7 +2183,12 @@
                 description: 'All ants gain +2 ATK',
                 emoji: '🗡️',
                 apply: () => { upgradeMultipliers.atkBonus += 2; },
-                maxStacks: 5
+                maxStacks: 5,
+                premium: {
+                    cost: 40,
+                    description: 'All ants gain +6 ATK',
+                    apply: () => { upgradeMultipliers.atkBonus += 6; }
+                }
             },
             {
                 id: 'def_boost',
@@ -1989,7 +2196,12 @@
                 description: 'All ants gain +2 DEF',
                 emoji: '🛡️',
                 apply: () => { upgradeMultipliers.defBonus += 2; },
-                maxStacks: 5
+                maxStacks: 5,
+                premium: {
+                    cost: 40,
+                    description: 'All ants gain +6 DEF',
+                    apply: () => { upgradeMultipliers.defBonus += 6; }
+                }
             },
             {
                 id: 'hp_boost',
@@ -1997,7 +2209,12 @@
                 description: 'All ants gain +5 max HP',
                 emoji: '❤️',
                 apply: () => { upgradeMultipliers.hpBonus += 5; },
-                maxStacks: 5
+                maxStacks: 5,
+                premium: {
+                    cost: 35,
+                    description: 'All ants gain +15 max HP',
+                    apply: () => { upgradeMultipliers.hpBonus += 15; }
+                }
             },
             {
                 id: 'queen_boost',
@@ -2005,7 +2222,12 @@
                 description: 'Queens spawn workers 25% faster',
                 emoji: '👑',
                 apply: () => { upgradeMultipliers.queenSpawnRate *= 0.75; },
-                maxStacks: 3
+                maxStacks: 3,
+                premium: {
+                    cost: 60,
+                    description: 'Queens spawn workers 50% faster',
+                    apply: () => { upgradeMultipliers.queenSpawnRate *= 0.5; }
+                }
             },
             {
                 id: 'coin_burst',
@@ -2016,7 +2238,15 @@
                     coins += 50;
                     totalCoinsEarned += 50;
                 },
-                maxStacks: 99
+                maxStacks: 99,
+                premium: {
+                    cost: 10,
+                    description: 'Instantly gain 150 coins',
+                    apply: () => {
+                        coins += 150;
+                        totalCoinsEarned += 150;
+                    }
+                }
             }
         ];
 
@@ -2033,28 +2263,60 @@
             return shuffled.slice(0, Math.min(count, shuffled.length));
         }
 
+        let currentUpgradeChoices = [];  // Track current upgrade options for auto-select
+
         function showUpgradeSelection() {
             upgradesPaused = true;
             const upgrades = getRandomUpgrades(3);
+            currentUpgradeChoices = upgrades;  // Store for auto-select
+            upgradeChoiceStartTime = Date.now();  // Start countdown
 
             const container = document.getElementById('upgrade-options');
             container.innerHTML = '';
 
             upgrades.forEach(upgrade => {
                 const stacks = getUpgradeStacks(upgrade.id);
+                const hasPremium = upgrade.premium && upgrade.premium.cost;
+                const canAffordPremium = hasPremium && coins >= upgrade.premium.cost;
+
                 const card = document.createElement('div');
-                card.className = 'upgrade-card';
+                card.className = 'upgrade-card-wrapper';
                 card.innerHTML = `
-                    <div class="upgrade-emoji">${upgrade.emoji}</div>
-                    <div class="upgrade-name">${upgrade.name}</div>
-                    <div class="upgrade-desc">${upgrade.description}</div>
-                    ${stacks > 0 ? `<div class="upgrade-stacks">x${stacks + 1}</div>` : ''}
+                    <div class="upgrade-card" data-upgrade-id="${upgrade.id}">
+                        <div class="upgrade-emoji">${upgrade.emoji}</div>
+                        <div class="upgrade-info">
+                            <div class="upgrade-name">${upgrade.name}</div>
+                            <div class="upgrade-desc">${upgrade.description}</div>
+                        </div>
+                        ${stacks > 0 ? `<div class="upgrade-stacks">x${stacks + 1}</div>` : ''}
+                    </div>
+                    ${hasPremium ? `
+                        <div class="upgrade-premium ${canAffordPremium ? '' : 'disabled'}" data-upgrade-id="${upgrade.id}">
+                            <span class="premium-cost">${upgrade.premium.cost}G</span>
+                            <span class="premium-desc">${upgrade.premium.description}</span>
+                        </div>
+                    ` : ''}
                 `;
-                card.onclick = () => selectUpgrade(upgrade);
+
+                // Add click handlers
+                const normalCard = card.querySelector('.upgrade-card');
+                normalCard.onclick = () => selectUpgrade(upgrade);
+
+                if (hasPremium) {
+                    const premiumCard = card.querySelector('.upgrade-premium');
+                    premiumCard.onclick = () => selectPremiumUpgrade(upgrade);
+                }
+
                 container.appendChild(card);
             });
 
-            document.getElementById('upgrade-modal').classList.add('visible');
+            // Reset countdown display
+            document.getElementById('upgrade-countdown').textContent = UPGRADE_CHOICE_TIMEOUT;
+            document.getElementById('upgrade-timer-fill').style.width = '100%';
+
+            const modal = document.getElementById('upgrade-modal');
+            modal.classList.remove('minimized');
+            modal.classList.add('visible');
         }
 
         function selectUpgrade(upgrade) {
@@ -2062,9 +2324,64 @@
             activeUpgrades.push(upgrade.id);
 
             document.getElementById('upgrade-modal').classList.remove('visible');
+            document.getElementById('upgrade-modal').classList.remove('minimized');
             upgradesPaused = false;
             lastUpgradeTime = getElapsedSeconds();
+            currentUpgradeChoices = [];  // Clear choices
         }
+
+        function selectPremiumUpgrade(upgrade) {
+            if (!upgrade.premium || coins < upgrade.premium.cost) {
+                return;  // Can't afford
+            }
+
+            // Deduct cost
+            coins -= upgrade.premium.cost;
+
+            // Apply premium effect
+            upgrade.premium.apply();
+            activeUpgrades.push(upgrade.id);
+
+            document.getElementById('upgrade-modal').classList.remove('visible');
+            document.getElementById('upgrade-modal').classList.remove('minimized');
+            upgradesPaused = false;
+            lastUpgradeTime = getElapsedSeconds();
+            currentUpgradeChoices = [];  // Clear choices
+        }
+
+        function updateUpgradeCountdown() {
+            if (!upgradesPaused || currentUpgradeChoices.length === 0) return;
+
+            const elapsed = (Date.now() - upgradeChoiceStartTime) / 1000;
+            const remaining = Math.max(0, UPGRADE_CHOICE_TIMEOUT - elapsed);
+
+            // Update countdown display
+            document.getElementById('upgrade-countdown').textContent = Math.ceil(remaining);
+            document.getElementById('upgrade-timer-fill').style.width = (remaining / UPGRADE_CHOICE_TIMEOUT * 100) + '%';
+
+            // Auto-select if time runs out
+            if (remaining <= 0 && currentUpgradeChoices.length > 0) {
+                const randomIndex = Math.floor(Math.random() * currentUpgradeChoices.length);
+                selectUpgrade(currentUpgradeChoices[randomIndex]);
+            }
+        }
+
+        function toggleUpgradePanel() {
+            const modal = document.getElementById('upgrade-modal');
+            const btn = document.getElementById('upgrade-hide-btn');
+            if (modal.classList.contains('minimized')) {
+                modal.classList.remove('minimized');
+                btn.textContent = '\u25C0';  // Left arrow
+                btn.title = 'Hide (still counting down)';
+            } else {
+                modal.classList.add('minimized');
+                btn.textContent = '\u25B6';  // Right arrow
+                btn.title = 'Show upgrade choices';
+            }
+        }
+
+        // Set up hide button event listener
+        document.getElementById('upgrade-hide-btn').addEventListener('click', toggleUpgradePanel);
 
         function checkUpgradeTime() {
             if (gameOver || upgradesPaused) return;
@@ -2137,9 +2454,9 @@
                 }
             }
 
-            // Reset predator arrays - just one of each to start
-            spiderPredators = [new Spider()];
-            beetlePredators = [new Beetle()];
+            // Reset predator arrays - don't spawn at start, they come from dens
+            spiderPredators = [];
+            beetlePredators = [];
 
             // Reinitialize
             initAnts();
@@ -2586,6 +2903,44 @@
             }
         }
 
+        // Active combat: All ants attack nearby predators
+        function checkAntPredatorCombat() {
+            const COMBAT_RANGE = 20;  // How close an ant needs to be to attack
+
+            // Combine all predators into one array
+            const allPredators = [...spiderPredators, ...beetlePredators];
+
+            for (const ant of ants) {
+                // Skip ants that are busy or panicking
+                if (ant.panicTimer > 0) continue;
+
+                for (const predator of allPredators) {
+                    // Skip stunned predators
+                    if (predator.state === 'stunned') continue;
+
+                    const dist = Math.hypot(ant.x - predator.x, ant.y - predator.y);
+
+                    if (dist < COMBAT_RANGE) {
+                        // Ant is in combat range - deal damage!
+                        const antAtk = ant.getEffectiveAtk();
+
+                        if (antAtk > 0 && predator.currentHp !== undefined) {
+                            const damageDealt = Math.max(1, antAtk - (predator.def || 0));
+                            predator.currentHp -= damageDealt;
+
+                            // Visual feedback - ant did damage
+                            ant.panicTimer = 10;  // Brief pause after attacking
+
+                            // Check if predator is killed
+                            if (predator.currentHp <= 0) {
+                                predator.stun(300);  // Long stun before respawn
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // Trailblazer beacons for Scout skill
         let trailblazerBeacons = [];
 
@@ -2710,13 +3065,11 @@
                     return;
                 }
 
-                // Find nearest ant within territory
+                // Find nearest ant anywhere on the map
                 let nearestAnt = null;
                 let nearestDist = cfg.huntRadius;
 
                 for (const ant of ants) {
-                    const distToCenter = Math.hypot(ant.x - cfg.x, ant.y - cfg.y);
-                    if (distToCenter > cfg.radius) continue;
                     const dist = Math.hypot(ant.x - this.x, ant.y - this.y);
                     if (dist < nearestDist) {
                         nearestDist = dist;
@@ -2735,29 +3088,25 @@
                         }
                     }
                 } else {
-                    // Wander within entire territory (uses full radius)
+                    // Wander freely across the entire map
                     if (Math.random() < 0.03) {
-                        const angle = Math.random() * Math.PI * 2;
-                        const dist = Math.random() * cfg.radius * 0.95;  // Use almost full radius
-                        this.targetX = cfg.x + Math.cos(angle) * dist;
-                        this.targetY = cfg.y + Math.sin(angle) * dist;
+                        const margin = 50;
+                        this.targetX = margin + Math.random() * (width - margin * 2);
+                        this.targetY = margin + Math.random() * (height - margin * 2);
                     }
                 }
 
-                // Move toward target but stay in territory
+                // Move toward target freely
                 const angleToTarget = Math.atan2(this.targetY - this.y, this.targetX - this.x);
                 this.angle = angleToTarget;
 
                 let newX = this.x + Math.cos(this.angle) * this.speed;
                 let newY = this.y + Math.sin(this.angle) * this.speed;
 
-                // Constrain to territory
-                const distFromCenter = Math.hypot(newX - cfg.x, newY - cfg.y);
-                if (distFromCenter > cfg.radius - 10) {
-                    const angleFromCenter = Math.atan2(newY - cfg.y, newX - cfg.x);
-                    newX = cfg.x + Math.cos(angleFromCenter) * (cfg.radius - 10);
-                    newY = cfg.y + Math.sin(angleFromCenter) * (cfg.radius - 10);
-                }
+                // Keep within screen bounds
+                const margin = 20;
+                newX = Math.max(margin, Math.min(width - margin, newX));
+                newY = Math.max(margin, Math.min(height - margin, newY));
 
                 const dist = Math.hypot(this.targetX - this.x, this.targetY - this.y);
                 if (dist > 5) {
@@ -2913,14 +3262,13 @@
                     return;
                 }
 
-                // Random wandering patrol within territory
+                // Random wandering patrol across the entire map
                 this.wanderTimer--;
                 if (this.wanderTimer <= 0) {
-                    // Pick a new random target within the zone
-                    const angle = Math.random() * Math.PI * 2;
-                    const dist = Math.random() * cfg.radius * 0.9;
-                    this.targetX = cfg.x + Math.cos(angle) * dist;
-                    this.targetY = cfg.y + Math.sin(angle) * dist;
+                    // Pick a new random target anywhere on the map
+                    const margin = 50;
+                    this.targetX = margin + Math.random() * (width - margin * 2);
+                    this.targetY = margin + Math.random() * (height - margin * 2);
                     this.wanderTimer = 60 + Math.random() * 120;  // New target every 1-3 seconds
                 }
 
@@ -2928,16 +3276,13 @@
                 const angleToTarget = Math.atan2(this.targetY - this.y, this.targetX - this.x);
                 this.angle = angleToTarget;
 
-                this.x += Math.cos(this.angle) * cfg.patrolSpeed;
-                this.y += Math.sin(this.angle) * cfg.patrolSpeed;
+                let newX = this.x + Math.cos(this.angle) * cfg.patrolSpeed;
+                let newY = this.y + Math.sin(this.angle) * cfg.patrolSpeed;
 
-                // Stay within territory
-                const distFromCenter = Math.hypot(this.x - cfg.x, this.y - cfg.y);
-                if (distFromCenter > cfg.radius * 0.95) {
-                    const angleToCenter = Math.atan2(cfg.y - this.y, cfg.x - this.x);
-                    this.x += Math.cos(angleToCenter) * 2;
-                    this.y += Math.sin(angleToCenter) * 2;
-                }
+                // Keep within screen bounds
+                const margin = 20;
+                this.x = Math.max(margin, Math.min(width - margin, newX));
+                this.y = Math.max(margin, Math.min(height - margin, newY));
 
                 // Kill ants in radius
                 for (let i = ants.length - 1; i >= 0; i--) {
@@ -4891,6 +5236,21 @@
                     name: 'SPD',
                     value: ant.speed.toFixed(2),
                     class: ant.speed >= 0.6 ? 'good' : ant.speed >= 0.4 ? '' : 'weak'
+                },
+                {
+                    name: 'DET',
+                    value: Math.round(ant.detectionRadius),
+                    class: ant.detectionRadius >= 20 ? 'good' : ant.detectionRadius >= 12 ? '' : 'weak'
+                },
+                {
+                    name: 'CAP',
+                    value: Math.round(ant.carryCapacity),
+                    class: ant.carryCapacity >= 3 ? 'good' : ant.carryCapacity >= 2 ? '' : 'weak'
+                },
+                {
+                    name: 'PHER',
+                    value: ant.pheromoneStrength.toFixed(1),
+                    class: ant.pheromoneStrength >= 1.0 ? 'good' : ant.pheromoneStrength >= 0.7 ? '' : 'weak'
                 }
             ];
 
@@ -5604,6 +5964,7 @@
             updateFoodTimers();
             updateDeathCounter();  // For Berserker skill
             updateTrailblazerBeacons();  // For Scout skill
+            checkAntPredatorCombat();  // All ants fight nearby predators
 
             // Check for game over
             checkGameOver();
@@ -5717,6 +6078,7 @@
             update();
             render();
             updateUI();
+            updateUpgradeCountdown();
             requestAnimationFrame(gameLoop);
         }
 
@@ -5754,9 +6116,9 @@
                 }
             }
 
-            // Initialize predator arrays with one of each
-            spiderPredators = [new Spider()];
-            beetlePredators = [new Beetle()];
+            // Don't spawn predators at game start - they spawn from dens over time
+            spiderPredators = [];
+            beetlePredators = [];
         }
 
         // Initialize
