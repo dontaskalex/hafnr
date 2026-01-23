@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>German Articles | hafnr</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f0f0f;
+            --surface: #1a1a1a;
+            --surface-hover: #222;
+            --border: #2a2a2a;
+            --text: #ffffff;
+            --text-dim: #888;
+            --der: #4a9eff;
+            --die: #ff6b9d;
+            --das: #50d890;
+            --correct: #50d890;
+            --wrong: #ff6b6b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text);
+            text-decoration: none;
+            letter-spacing: 0.05em;
+        }
+
+        .back-link {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 0.8rem;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--text);
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            gap: 2rem;
+        }
+
+        .stats {
+            display: flex;
+            gap: 2rem;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .stat-value.correct {
+            color: var(--correct);
+        }
+
+        .stat-value.wrong {
+            color: var(--wrong);
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 3rem 4rem;
+            text-align: center;
+            min-width: 320px;
+            max-width: 500px;
+        }
+
+        .category {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        }
+
+        .word {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            transition: color 0.3s;
+        }
+
+        .translation {
+            font-size: 1rem;
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+            min-height: 1.5rem;
+        }
+
+        .hint-btn {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            cursor: pointer;
+            text-decoration: underline;
+            margin-bottom: 1rem;
+        }
+
+        .hint-btn:hover {
+            color: var(--text);
+        }
+
+        .buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .article-btn {
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            background: var(--surface);
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.15s;
+            min-width: 80px;
+        }
+
+        .article-btn:hover {
+            background: var(--surface-hover);
+        }
+
+        .article-btn.der:hover {
+            border-color: var(--der);
+            color: var(--der);
+        }
+
+        .article-btn.die:hover {
+            border-color: var(--die);
+            color: var(--die);
+        }
+
+        .article-btn.das:hover {
+            border-color: var(--das);
+            color: var(--das);
+        }
+
+        .article-btn.correct {
+            background: var(--correct);
+            border-color: var(--correct);
+            color: #000;
+        }
+
+        .article-btn.wrong {
+            background: var(--wrong);
+            border-color: var(--wrong);
+            color: #000;
+        }
+
+        .article-btn:disabled {
+            cursor: default;
+        }
+
+        .feedback {
+            margin-top: 1.5rem;
+            font-size: 1rem;
+            min-height: 1.5rem;
+        }
+
+        .feedback.correct {
+            color: var(--correct);
+        }
+
+        .feedback.wrong {
+            color: var(--wrong);
+        }
+
+        .progress-bar {
+            width: 100%;
+            max-width: 500px;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--der), var(--die), var(--das));
+            transition: width 0.3s;
+        }
+
+        .mastery-hint {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            opacity: 0.6;
+            margin-top: 0.5rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .control-btn {
+            padding: 0.6rem 1.2rem;
+            font-size: 0.85rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .control-btn:hover {
+            background: var(--surface-hover);
+            color: var(--text);
+        }
+
+        .control-btn.active {
+            border-color: var(--wrong);
+            background: rgba(255, 107, 107, 0.15);
+            color: var(--wrong);
+        }
+
+        .word-status {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            margin-top: 0.25rem;
+        }
+
+        .word-status.mastered {
+            color: var(--correct);
+        }
+
+        .word-status.needs-practice {
+            color: var(--wrong);
+        }
+
+        select {
+            padding: 0.6rem 1rem;
+            font-size: 0.85rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--text);
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--text-dim);
+        }
+
+        .keyboard-hint {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-top: 1rem;
+        }
+
+        .keyboard-hint kbd {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 0.2rem 0.5rem;
+            font-family: inherit;
+            font-size: 0.7rem;
+        }
+
+        .info-btn {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-dim);
+            font-size: 0.65rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            margin-left: 0.5rem;
+            vertical-align: middle;
+        }
+
+        .info-btn:hover {
+            background: var(--surface-hover);
+            color: var(--text);
+            border-color: var(--text-dim);
+        }
+
+        .info-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .info-modal.show {
+            display: flex;
+        }
+
+        .info-content {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 420px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .info-content h2 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        .info-content p {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .info-content ul {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            padding-left: 1.2rem;
+        }
+
+        .info-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .info-content .article-example {
+            display: inline-block;
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .info-content .article-example.der { color: var(--der); }
+        .info-content .article-example.die { color: var(--die); }
+        .info-content .article-example.das { color: var(--das); }
+
+        .info-close {
+            width: 100%;
+            padding: 0.8rem;
+            margin-top: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--text);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .info-close:hover {
+            background: var(--surface-hover);
+        }
+
+        @media (max-width: 600px) {
+            main {
+                padding: 1.5rem 1rem;
+            }
+
+            .card {
+                padding: 2rem 1.5rem;
+                min-width: auto;
+                width: 100%;
+            }
+
+            .word {
+                font-size: 2rem;
+            }
+
+            .buttons {
+                flex-direction: row;
+            }
+
+            .article-btn {
+                padding: 0.8rem 1.5rem;
+                font-size: 1rem;
+                min-width: 70px;
+            }
+
+            .stats {
+                gap: 1rem;
+                font-size: 0.8rem;
+            }
+
+            .controls {
+                gap: 0.5rem;
+            }
+
+            .control-btn {
+                padding: 0.5rem 0.8rem;
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="../" class="logo">GERMAN ARTICLES</a>
+        <a href="../" class="back-link">← Back to Hub</a>
+    </header>
+
+    <div class="info-modal" id="infoModal">
+        <div class="info-content">
+            <h2>How It Works</h2>
+            <p>Practice German grammatical gender by choosing the correct article for each word: <span class="article-example der">der</span> (masculine), <span class="article-example die">die</span> (feminine), or <span class="article-example das">das</span> (neuter).</p>
+
+            <h2>Mastery System</h2>
+            <p>Your progress is saved automatically. Each word tracks how many times you got it right or wrong:</p>
+            <ul>
+                <li><strong>Mastered</strong> = more correct than wrong answers</li>
+                <li><strong>Learning</strong> = equal correct and wrong</li>
+                <li><strong>Needs practice</strong> = more wrong than correct</li>
+            </ul>
+            <p>The progress bar fills as you master more words out of the total 555.</p>
+
+            <h2>Practice Mistakes</h2>
+            <p>Click "Practice Mistakes" to focus only on words you're struggling with. Words disappear from this mode once you master them.</p>
+
+            <button class="info-close" id="infoClose">Got it</button>
+        </div>
+    </div>
+
+    <main>
+        <div class="stats">
+            <div class="stat">
+                <span>Session:</span>
+                <span class="stat-value correct" id="correct">0</span>
+                <span>/</span>
+                <span class="stat-value wrong" id="wrong">0</span>
+            </div>
+            <div class="stat">
+                <span>Streak:</span>
+                <span class="stat-value" id="streak">0</span>
+            </div>
+            <div class="stat">
+                <span>Mastered:</span>
+                <span class="stat-value correct" id="mastered">0</span>
+                <span>/</span>
+                <span id="totalWords">0</span>
+                <button class="info-btn" id="infoBtn" title="How it works">i</button>
+            </div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar"></div>
+        </div>
+
+        <div class="card">
+            <div class="category" id="category">Loading...</div>
+            <div class="word" id="word">...</div>
+            <div class="word-status" id="wordStatus"></div>
+            <button class="hint-btn" id="hintBtn">Show translation</button>
+            <div class="translation" id="translation"></div>
+            <div class="buttons">
+                <button class="article-btn der" data-article="der">der</button>
+                <button class="article-btn die" data-article="die">die</button>
+                <button class="article-btn das" data-article="das">das</button>
+            </div>
+            <div class="feedback" id="feedback"></div>
+        </div>
+
+        <div class="controls">
+            <select id="categoryFilter">
+                <option value="all">All Categories</option>
+            </select>
+            <button class="control-btn" id="mistakesBtn">Practice Mistakes <span id="mistakesCount">(0)</span></button>
+            <button class="control-btn" id="shuffleBtn">Shuffle</button>
+            <button class="control-btn" id="resetBtn">Reset Progress</button>
+        </div>
+
+        <div class="keyboard-hint">
+            <kbd>1</kbd> der &nbsp; <kbd>2</kbd> die &nbsp; <kbd>3</kbd> das &nbsp; <kbd>H</kbd> hint &nbsp; <kbd>Space</kbd> next
+        </div>
+    </main>
+
+    <script>
+        // Complete Goethe A1 German noun vocabulary with articles
+        const vocabulary = [
+            // PEOPLE & FAMILY
+            { word: "Mann", article: "der", english: "man", category: "People" },
+            { word: "Frau", article: "die", english: "woman/wife", category: "People" },
+            { word: "Kind", article: "das", english: "child", category: "People" },
+            { word: "Junge", article: "der", english: "boy", category: "People" },
+            { word: "Mädchen", article: "das", english: "girl", category: "People" },
+            { word: "Baby", article: "das", english: "baby", category: "People" },
+            { word: "Vater", article: "der", english: "father", category: "Family" },
+            { word: "Mutter", article: "die", english: "mother", category: "Family" },
+            { word: "Eltern", article: "die", english: "parents", category: "Family" },
+            { word: "Sohn", article: "der", english: "son", category: "Family" },
+            { word: "Tochter", article: "die", english: "daughter", category: "Family" },
+            { word: "Bruder", article: "der", english: "brother", category: "Family" },
+            { word: "Schwester", article: "die", english: "sister", category: "Family" },
+            { word: "Großvater", article: "der", english: "grandfather", category: "Family" },
+            { word: "Großmutter", article: "die", english: "grandmother", category: "Family" },
+            { word: "Onkel", article: "der", english: "uncle", category: "Family" },
+            { word: "Tante", article: "die", english: "aunt", category: "Family" },
+            { word: "Cousin", article: "der", english: "cousin (m)", category: "Family" },
+            { word: "Cousine", article: "die", english: "cousin (f)", category: "Family" },
+            { word: "Freund", article: "der", english: "friend (m)/boyfriend", category: "People" },
+            { word: "Freundin", article: "die", english: "friend (f)/girlfriend", category: "People" },
+            { word: "Partner", article: "der", english: "partner (m)", category: "People" },
+            { word: "Partnerin", article: "die", english: "partner (f)", category: "People" },
+            { word: "Nachbar", article: "der", english: "neighbor (m)", category: "People" },
+            { word: "Nachbarin", article: "die", english: "neighbor (f)", category: "People" },
+            { word: "Mensch", article: "der", english: "person/human", category: "People" },
+            { word: "Leute", article: "die", english: "people", category: "People" },
+            { word: "Person", article: "die", english: "person", category: "People" },
+            { word: "Herr", article: "der", english: "Mr./gentleman", category: "People" },
+            { word: "Dame", article: "die", english: "lady", category: "People" },
+
+            // BODY
+            { word: "Körper", article: "der", english: "body", category: "Body" },
+            { word: "Kopf", article: "der", english: "head", category: "Body" },
+            { word: "Haar", article: "das", english: "hair", category: "Body" },
+            { word: "Gesicht", article: "das", english: "face", category: "Body" },
+            { word: "Auge", article: "das", english: "eye", category: "Body" },
+            { word: "Nase", article: "die", english: "nose", category: "Body" },
+            { word: "Mund", article: "der", english: "mouth", category: "Body" },
+            { word: "Ohr", article: "das", english: "ear", category: "Body" },
+            { word: "Zahn", article: "der", english: "tooth", category: "Body" },
+            { word: "Hals", article: "der", english: "neck/throat", category: "Body" },
+            { word: "Arm", article: "der", english: "arm", category: "Body" },
+            { word: "Hand", article: "die", english: "hand", category: "Body" },
+            { word: "Finger", article: "der", english: "finger", category: "Body" },
+            { word: "Bein", article: "das", english: "leg", category: "Body" },
+            { word: "Fuß", article: "der", english: "foot", category: "Body" },
+            { word: "Rücken", article: "der", english: "back", category: "Body" },
+            { word: "Bauch", article: "der", english: "belly/stomach", category: "Body" },
+            { word: "Herz", article: "das", english: "heart", category: "Body" },
+
+            // HEALTH
+            { word: "Gesundheit", article: "die", english: "health", category: "Health" },
+            { word: "Krankheit", article: "die", english: "illness", category: "Health" },
+            { word: "Arzt", article: "der", english: "doctor (m)", category: "Health" },
+            { word: "Ärztin", article: "die", english: "doctor (f)", category: "Health" },
+            { word: "Krankenhaus", article: "das", english: "hospital", category: "Health" },
+            { word: "Apotheke", article: "die", english: "pharmacy", category: "Health" },
+            { word: "Medikament", article: "das", english: "medicine/medication", category: "Health" },
+            { word: "Tablette", article: "die", english: "pill/tablet", category: "Health" },
+            { word: "Schmerz", article: "der", english: "pain", category: "Health" },
+            { word: "Fieber", article: "das", english: "fever", category: "Health" },
+            { word: "Erkältung", article: "die", english: "cold (illness)", category: "Health" },
+            { word: "Termin", article: "der", english: "appointment", category: "Health" },
+            { word: "Rezept", article: "das", english: "prescription/recipe", category: "Health" },
+
+            // FOOD & DRINKS
+            { word: "Essen", article: "das", english: "food/meal", category: "Food" },
+            { word: "Trinken", article: "das", english: "drink/drinking", category: "Food" },
+            { word: "Frühstück", article: "das", english: "breakfast", category: "Food" },
+            { word: "Mittagessen", article: "das", english: "lunch", category: "Food" },
+            { word: "Abendessen", article: "das", english: "dinner", category: "Food" },
+            { word: "Brot", article: "das", english: "bread", category: "Food" },
+            { word: "Brötchen", article: "das", english: "bread roll", category: "Food" },
+            { word: "Butter", article: "die", english: "butter", category: "Food" },
+            { word: "Käse", article: "der", english: "cheese", category: "Food" },
+            { word: "Wurst", article: "die", english: "sausage", category: "Food" },
+            { word: "Schinken", article: "der", english: "ham", category: "Food" },
+            { word: "Fleisch", article: "das", english: "meat", category: "Food" },
+            { word: "Fisch", article: "der", english: "fish", category: "Food" },
+            { word: "Hähnchen", article: "das", english: "chicken", category: "Food" },
+            { word: "Ei", article: "das", english: "egg", category: "Food" },
+            { word: "Reis", article: "der", english: "rice", category: "Food" },
+            { word: "Nudel", article: "die", english: "noodle/pasta", category: "Food" },
+            { word: "Kartoffel", article: "die", english: "potato", category: "Food" },
+            { word: "Salat", article: "der", english: "salad/lettuce", category: "Food" },
+            { word: "Gemüse", article: "das", english: "vegetables", category: "Food" },
+            { word: "Obst", article: "das", english: "fruit", category: "Food" },
+            { word: "Apfel", article: "der", english: "apple", category: "Food" },
+            { word: "Banane", article: "die", english: "banana", category: "Food" },
+            { word: "Orange", article: "die", english: "orange", category: "Food" },
+            { word: "Tomate", article: "die", english: "tomato", category: "Food" },
+            { word: "Gurke", article: "die", english: "cucumber", category: "Food" },
+            { word: "Zwiebel", article: "die", english: "onion", category: "Food" },
+            { word: "Suppe", article: "die", english: "soup", category: "Food" },
+            { word: "Pizza", article: "die", english: "pizza", category: "Food" },
+            { word: "Kuchen", article: "der", english: "cake", category: "Food" },
+            { word: "Torte", article: "die", english: "tart/cake", category: "Food" },
+            { word: "Eis", article: "das", english: "ice cream/ice", category: "Food" },
+            { word: "Schokolade", article: "die", english: "chocolate", category: "Food" },
+            { word: "Zucker", article: "der", english: "sugar", category: "Food" },
+            { word: "Salz", article: "das", english: "salt", category: "Food" },
+            { word: "Pfeffer", article: "der", english: "pepper", category: "Food" },
+            { word: "Öl", article: "das", english: "oil", category: "Food" },
+            { word: "Wasser", article: "das", english: "water", category: "Drinks" },
+            { word: "Milch", article: "die", english: "milk", category: "Drinks" },
+            { word: "Kaffee", article: "der", english: "coffee", category: "Drinks" },
+            { word: "Tee", article: "der", english: "tea", category: "Drinks" },
+            { word: "Saft", article: "der", english: "juice", category: "Drinks" },
+            { word: "Bier", article: "das", english: "beer", category: "Drinks" },
+            { word: "Wein", article: "der", english: "wine", category: "Drinks" },
+            { word: "Flasche", article: "die", english: "bottle", category: "Drinks" },
+            { word: "Glas", article: "das", english: "glass", category: "Drinks" },
+            { word: "Tasse", article: "die", english: "cup", category: "Drinks" },
+
+            // HOME & FURNITURE
+            { word: "Haus", article: "das", english: "house", category: "Home" },
+            { word: "Wohnung", article: "die", english: "apartment", category: "Home" },
+            { word: "Zimmer", article: "das", english: "room", category: "Home" },
+            { word: "Küche", article: "die", english: "kitchen", category: "Home" },
+            { word: "Bad", article: "das", english: "bathroom", category: "Home" },
+            { word: "Badezimmer", article: "das", english: "bathroom", category: "Home" },
+            { word: "Toilette", article: "die", english: "toilet", category: "Home" },
+            { word: "Schlafzimmer", article: "das", english: "bedroom", category: "Home" },
+            { word: "Wohnzimmer", article: "das", english: "living room", category: "Home" },
+            { word: "Kinderzimmer", article: "das", english: "children's room", category: "Home" },
+            { word: "Flur", article: "der", english: "hallway", category: "Home" },
+            { word: "Keller", article: "der", english: "basement", category: "Home" },
+            { word: "Dach", article: "das", english: "roof", category: "Home" },
+            { word: "Balkon", article: "der", english: "balcony", category: "Home" },
+            { word: "Garten", article: "der", english: "garden", category: "Home" },
+            { word: "Garage", article: "die", english: "garage", category: "Home" },
+            { word: "Tür", article: "die", english: "door", category: "Home" },
+            { word: "Fenster", article: "das", english: "window", category: "Home" },
+            { word: "Wand", article: "die", english: "wall", category: "Home" },
+            { word: "Boden", article: "der", english: "floor/ground", category: "Home" },
+            { word: "Decke", article: "die", english: "ceiling/blanket", category: "Home" },
+            { word: "Treppe", article: "die", english: "stairs", category: "Home" },
+            { word: "Aufzug", article: "der", english: "elevator", category: "Home" },
+            { word: "Fahrstuhl", article: "der", english: "elevator", category: "Home" },
+            { word: "Stock", article: "der", english: "floor/story", category: "Home" },
+            { word: "Etage", article: "die", english: "floor/story", category: "Home" },
+            { word: "Möbel", article: "das", english: "furniture", category: "Furniture" },
+            { word: "Tisch", article: "der", english: "table", category: "Furniture" },
+            { word: "Stuhl", article: "der", english: "chair", category: "Furniture" },
+            { word: "Sofa", article: "das", english: "sofa", category: "Furniture" },
+            { word: "Sessel", article: "der", english: "armchair", category: "Furniture" },
+            { word: "Bett", article: "das", english: "bed", category: "Furniture" },
+            { word: "Schrank", article: "der", english: "closet/cabinet", category: "Furniture" },
+            { word: "Regal", article: "das", english: "shelf", category: "Furniture" },
+            { word: "Kommode", article: "die", english: "dresser", category: "Furniture" },
+            { word: "Schreibtisch", article: "der", english: "desk", category: "Furniture" },
+            { word: "Lampe", article: "die", english: "lamp", category: "Furniture" },
+            { word: "Bild", article: "das", english: "picture", category: "Furniture" },
+            { word: "Spiegel", article: "der", english: "mirror", category: "Furniture" },
+            { word: "Uhr", article: "die", english: "clock/watch", category: "Furniture" },
+            { word: "Teppich", article: "der", english: "carpet", category: "Furniture" },
+            { word: "Vorhang", article: "der", english: "curtain", category: "Furniture" },
+
+            // KITCHEN & HOUSEHOLD
+            { word: "Kühlschrank", article: "der", english: "refrigerator", category: "Kitchen" },
+            { word: "Herd", article: "der", english: "stove", category: "Kitchen" },
+            { word: "Ofen", article: "der", english: "oven", category: "Kitchen" },
+            { word: "Mikrowelle", article: "die", english: "microwave", category: "Kitchen" },
+            { word: "Spülmaschine", article: "die", english: "dishwasher", category: "Kitchen" },
+            { word: "Waschmaschine", article: "die", english: "washing machine", category: "Kitchen" },
+            { word: "Teller", article: "der", english: "plate", category: "Kitchen" },
+            { word: "Schüssel", article: "die", english: "bowl", category: "Kitchen" },
+            { word: "Topf", article: "der", english: "pot", category: "Kitchen" },
+            { word: "Pfanne", article: "die", english: "pan", category: "Kitchen" },
+            { word: "Messer", article: "das", english: "knife", category: "Kitchen" },
+            { word: "Gabel", article: "die", english: "fork", category: "Kitchen" },
+            { word: "Löffel", article: "der", english: "spoon", category: "Kitchen" },
+            { word: "Serviette", article: "die", english: "napkin", category: "Kitchen" },
+            { word: "Handtuch", article: "das", english: "towel", category: "Kitchen" },
+            { word: "Seife", article: "die", english: "soap", category: "Kitchen" },
+
+            // CLOTHING
+            { word: "Kleidung", article: "die", english: "clothing", category: "Clothing" },
+            { word: "Hemd", article: "das", english: "shirt", category: "Clothing" },
+            { word: "Bluse", article: "die", english: "blouse", category: "Clothing" },
+            { word: "T-Shirt", article: "das", english: "t-shirt", category: "Clothing" },
+            { word: "Pullover", article: "der", english: "sweater", category: "Clothing" },
+            { word: "Jacke", article: "die", english: "jacket", category: "Clothing" },
+            { word: "Mantel", article: "der", english: "coat", category: "Clothing" },
+            { word: "Anzug", article: "der", english: "suit", category: "Clothing" },
+            { word: "Kleid", article: "das", english: "dress", category: "Clothing" },
+            { word: "Rock", article: "der", english: "skirt", category: "Clothing" },
+            { word: "Hose", article: "die", english: "pants", category: "Clothing" },
+            { word: "Jeans", article: "die", english: "jeans", category: "Clothing" },
+            { word: "Shorts", article: "die", english: "shorts", category: "Clothing" },
+            { word: "Schuh", article: "der", english: "shoe", category: "Clothing" },
+            { word: "Stiefel", article: "der", english: "boot", category: "Clothing" },
+            { word: "Socke", article: "die", english: "sock", category: "Clothing" },
+            { word: "Strumpf", article: "der", english: "stocking", category: "Clothing" },
+            { word: "Mütze", article: "die", english: "cap/beanie", category: "Clothing" },
+            { word: "Hut", article: "der", english: "hat", category: "Clothing" },
+            { word: "Schal", article: "der", english: "scarf", category: "Clothing" },
+            { word: "Handschuh", article: "der", english: "glove", category: "Clothing" },
+            { word: "Tasche", article: "die", english: "bag/pocket", category: "Clothing" },
+            { word: "Gürtel", article: "der", english: "belt", category: "Clothing" },
+            { word: "Brille", article: "die", english: "glasses", category: "Clothing" },
+            { word: "Sonnenbrille", article: "die", english: "sunglasses", category: "Clothing" },
+            { word: "Schmuck", article: "der", english: "jewelry", category: "Clothing" },
+            { word: "Ring", article: "der", english: "ring", category: "Clothing" },
+            { word: "Kette", article: "die", english: "necklace/chain", category: "Clothing" },
+
+            // PLACES & CITY
+            { word: "Stadt", article: "die", english: "city", category: "Places" },
+            { word: "Dorf", article: "das", english: "village", category: "Places" },
+            { word: "Land", article: "das", english: "country/land", category: "Places" },
+            { word: "Straße", article: "die", english: "street", category: "Places" },
+            { word: "Platz", article: "der", english: "square/place", category: "Places" },
+            { word: "Brücke", article: "die", english: "bridge", category: "Places" },
+            { word: "Park", article: "der", english: "park", category: "Places" },
+            { word: "Kirche", article: "die", english: "church", category: "Places" },
+            { word: "Museum", article: "das", english: "museum", category: "Places" },
+            { word: "Theater", article: "das", english: "theater", category: "Places" },
+            { word: "Kino", article: "das", english: "cinema", category: "Places" },
+            { word: "Restaurant", article: "das", english: "restaurant", category: "Places" },
+            { word: "Café", article: "das", english: "café", category: "Places" },
+            { word: "Bar", article: "die", english: "bar", category: "Places" },
+            { word: "Hotel", article: "das", english: "hotel", category: "Places" },
+            { word: "Bank", article: "die", english: "bank", category: "Places" },
+            { word: "Post", article: "die", english: "post office", category: "Places" },
+            { word: "Polizei", article: "die", english: "police", category: "Places" },
+            { word: "Rathaus", article: "das", english: "city hall", category: "Places" },
+            { word: "Bibliothek", article: "die", english: "library", category: "Places" },
+
+            // SHOPPING
+            { word: "Geschäft", article: "das", english: "shop/store", category: "Shopping" },
+            { word: "Laden", article: "der", english: "shop/store", category: "Shopping" },
+            { word: "Supermarkt", article: "der", english: "supermarket", category: "Shopping" },
+            { word: "Markt", article: "der", english: "market", category: "Shopping" },
+            { word: "Bäckerei", article: "die", english: "bakery", category: "Shopping" },
+            { word: "Metzgerei", article: "die", english: "butcher shop", category: "Shopping" },
+            { word: "Kaufhaus", article: "das", english: "department store", category: "Shopping" },
+            { word: "Einkaufszentrum", article: "das", english: "shopping center", category: "Shopping" },
+            { word: "Kasse", article: "die", english: "cash register", category: "Shopping" },
+            { word: "Preis", article: "der", english: "price", category: "Shopping" },
+            { word: "Geld", article: "das", english: "money", category: "Shopping" },
+            { word: "Euro", article: "der", english: "euro", category: "Shopping" },
+            { word: "Cent", article: "der", english: "cent", category: "Shopping" },
+            { word: "Karte", article: "die", english: "card/map", category: "Shopping" },
+            { word: "Rechnung", article: "die", english: "bill/invoice", category: "Shopping" },
+            { word: "Quittung", article: "die", english: "receipt", category: "Shopping" },
+            { word: "Angebot", article: "das", english: "offer", category: "Shopping" },
+            { word: "Rabatt", article: "der", english: "discount", category: "Shopping" },
+
+            // TRANSPORTATION
+            { word: "Verkehr", article: "der", english: "traffic", category: "Transport" },
+            { word: "Auto", article: "das", english: "car", category: "Transport" },
+            { word: "Wagen", article: "der", english: "car/wagon", category: "Transport" },
+            { word: "Bus", article: "der", english: "bus", category: "Transport" },
+            { word: "Zug", article: "der", english: "train", category: "Transport" },
+            { word: "Bahn", article: "die", english: "train/railway", category: "Transport" },
+            { word: "U-Bahn", article: "die", english: "subway", category: "Transport" },
+            { word: "S-Bahn", article: "die", english: "urban train", category: "Transport" },
+            { word: "Straßenbahn", article: "die", english: "tram", category: "Transport" },
+            { word: "Taxi", article: "das", english: "taxi", category: "Transport" },
+            { word: "Fahrrad", article: "das", english: "bicycle", category: "Transport" },
+            { word: "Motorrad", article: "das", english: "motorcycle", category: "Transport" },
+            { word: "Flugzeug", article: "das", english: "airplane", category: "Transport" },
+            { word: "Schiff", article: "das", english: "ship", category: "Transport" },
+            { word: "Boot", article: "das", english: "boat", category: "Transport" },
+            { word: "Bahnhof", article: "der", english: "train station", category: "Transport" },
+            { word: "Haltestelle", article: "die", english: "stop (bus/tram)", category: "Transport" },
+            { word: "Flughafen", article: "der", english: "airport", category: "Transport" },
+            { word: "Hafen", article: "der", english: "harbor", category: "Transport" },
+            { word: "Parkplatz", article: "der", english: "parking lot", category: "Transport" },
+            { word: "Führerschein", article: "der", english: "driver's license", category: "Transport" },
+            { word: "Fahrkarte", article: "die", english: "ticket", category: "Transport" },
+            { word: "Fahrplan", article: "der", english: "schedule", category: "Transport" },
+            { word: "Abfahrt", article: "die", english: "departure", category: "Transport" },
+            { word: "Ankunft", article: "die", english: "arrival", category: "Transport" },
+            { word: "Gleis", article: "das", english: "platform/track", category: "Transport" },
+            { word: "Ausgang", article: "der", english: "exit", category: "Transport" },
+            { word: "Eingang", article: "der", english: "entrance", category: "Transport" },
+
+            // WORK & JOBS
+            { word: "Arbeit", article: "die", english: "work", category: "Work" },
+            { word: "Job", article: "der", english: "job", category: "Work" },
+            { word: "Beruf", article: "der", english: "profession", category: "Work" },
+            { word: "Stelle", article: "die", english: "position/job", category: "Work" },
+            { word: "Büro", article: "das", english: "office", category: "Work" },
+            { word: "Firma", article: "die", english: "company", category: "Work" },
+            { word: "Fabrik", article: "die", english: "factory", category: "Work" },
+            { word: "Chef", article: "der", english: "boss (m)", category: "Work" },
+            { word: "Chefin", article: "die", english: "boss (f)", category: "Work" },
+            { word: "Kollege", article: "der", english: "colleague (m)", category: "Work" },
+            { word: "Kollegin", article: "die", english: "colleague (f)", category: "Work" },
+            { word: "Lehrer", article: "der", english: "teacher (m)", category: "Work" },
+            { word: "Lehrerin", article: "die", english: "teacher (f)", category: "Work" },
+            { word: "Verkäufer", article: "der", english: "salesperson (m)", category: "Work" },
+            { word: "Verkäuferin", article: "die", english: "salesperson (f)", category: "Work" },
+            { word: "Kellner", article: "der", english: "waiter", category: "Work" },
+            { word: "Kellnerin", article: "die", english: "waitress", category: "Work" },
+            { word: "Polizist", article: "der", english: "police officer (m)", category: "Work" },
+            { word: "Polizistin", article: "die", english: "police officer (f)", category: "Work" },
+            { word: "Ingenieur", article: "der", english: "engineer (m)", category: "Work" },
+            { word: "Ingenieurin", article: "die", english: "engineer (f)", category: "Work" },
+            { word: "Sekretär", article: "der", english: "secretary (m)", category: "Work" },
+            { word: "Sekretärin", article: "die", english: "secretary (f)", category: "Work" },
+            { word: "Friseur", article: "der", english: "hairdresser (m)", category: "Work" },
+            { word: "Friseurin", article: "die", english: "hairdresser (f)", category: "Work" },
+            { word: "Koch", article: "der", english: "cook (m)", category: "Work" },
+            { word: "Köchin", article: "die", english: "cook (f)", category: "Work" },
+            { word: "Bauer", article: "der", english: "farmer (m)", category: "Work" },
+            { word: "Bäuerin", article: "die", english: "farmer (f)", category: "Work" },
+            { word: "Student", article: "der", english: "student (m)", category: "Work" },
+            { word: "Studentin", article: "die", english: "student (f)", category: "Work" },
+            { word: "Praktikum", article: "das", english: "internship", category: "Work" },
+            { word: "Gehalt", article: "das", english: "salary", category: "Work" },
+            { word: "Urlaub", article: "der", english: "vacation", category: "Work" },
+            { word: "Ferien", article: "die", english: "holidays", category: "Work" },
+            { word: "Pause", article: "die", english: "break", category: "Work" },
+
+            // EDUCATION
+            { word: "Schule", article: "die", english: "school", category: "Education" },
+            { word: "Universität", article: "die", english: "university", category: "Education" },
+            { word: "Klasse", article: "die", english: "class", category: "Education" },
+            { word: "Kurs", article: "der", english: "course", category: "Education" },
+            { word: "Unterricht", article: "der", english: "lesson/class", category: "Education" },
+            { word: "Prüfung", article: "die", english: "exam", category: "Education" },
+            { word: "Test", article: "der", english: "test", category: "Education" },
+            { word: "Hausaufgabe", article: "die", english: "homework", category: "Education" },
+            { word: "Übung", article: "die", english: "exercise", category: "Education" },
+            { word: "Buch", article: "das", english: "book", category: "Education" },
+            { word: "Heft", article: "das", english: "notebook", category: "Education" },
+            { word: "Kugelschreiber", article: "der", english: "pen", category: "Education" },
+            { word: "Bleistift", article: "der", english: "pencil", category: "Education" },
+            { word: "Papier", article: "das", english: "paper", category: "Education" },
+            { word: "Tafel", article: "die", english: "board", category: "Education" },
+            { word: "Wörterbuch", article: "das", english: "dictionary", category: "Education" },
+            { word: "Sprache", article: "die", english: "language", category: "Education" },
+            { word: "Deutsch", article: "das", english: "German", category: "Education" },
+            { word: "Englisch", article: "das", english: "English", category: "Education" },
+            { word: "Wort", article: "das", english: "word", category: "Education" },
+            { word: "Satz", article: "der", english: "sentence", category: "Education" },
+            { word: "Grammatik", article: "die", english: "grammar", category: "Education" },
+            { word: "Beispiel", article: "das", english: "example", category: "Education" },
+            { word: "Frage", article: "die", english: "question", category: "Education" },
+            { word: "Antwort", article: "die", english: "answer", category: "Education" },
+            { word: "Problem", article: "das", english: "problem", category: "Education" },
+            { word: "Lösung", article: "die", english: "solution", category: "Education" },
+            { word: "Fehler", article: "der", english: "mistake/error", category: "Education" },
+
+            // TIME
+            { word: "Zeit", article: "die", english: "time", category: "Time" },
+            { word: "Jahr", article: "das", english: "year", category: "Time" },
+            { word: "Monat", article: "der", english: "month", category: "Time" },
+            { word: "Woche", article: "die", english: "week", category: "Time" },
+            { word: "Tag", article: "der", english: "day", category: "Time" },
+            { word: "Stunde", article: "die", english: "hour", category: "Time" },
+            { word: "Minute", article: "die", english: "minute", category: "Time" },
+            { word: "Sekunde", article: "die", english: "second", category: "Time" },
+            { word: "Morgen", article: "der", english: "morning", category: "Time" },
+            { word: "Vormittag", article: "der", english: "late morning", category: "Time" },
+            { word: "Mittag", article: "der", english: "noon", category: "Time" },
+            { word: "Nachmittag", article: "der", english: "afternoon", category: "Time" },
+            { word: "Abend", article: "der", english: "evening", category: "Time" },
+            { word: "Nacht", article: "die", english: "night", category: "Time" },
+            { word: "Wochenende", article: "das", english: "weekend", category: "Time" },
+            { word: "Montag", article: "der", english: "Monday", category: "Time" },
+            { word: "Dienstag", article: "der", english: "Tuesday", category: "Time" },
+            { word: "Mittwoch", article: "der", english: "Wednesday", category: "Time" },
+            { word: "Donnerstag", article: "der", english: "Thursday", category: "Time" },
+            { word: "Freitag", article: "der", english: "Friday", category: "Time" },
+            { word: "Samstag", article: "der", english: "Saturday", category: "Time" },
+            { word: "Sonntag", article: "der", english: "Sunday", category: "Time" },
+            { word: "Januar", article: "der", english: "January", category: "Time" },
+            { word: "Februar", article: "der", english: "February", category: "Time" },
+            { word: "März", article: "der", english: "March", category: "Time" },
+            { word: "April", article: "der", english: "April", category: "Time" },
+            { word: "Mai", article: "der", english: "May", category: "Time" },
+            { word: "Juni", article: "der", english: "June", category: "Time" },
+            { word: "Juli", article: "der", english: "July", category: "Time" },
+            { word: "August", article: "der", english: "August", category: "Time" },
+            { word: "September", article: "der", english: "September", category: "Time" },
+            { word: "Oktober", article: "der", english: "October", category: "Time" },
+            { word: "November", article: "der", english: "November", category: "Time" },
+            { word: "Dezember", article: "der", english: "December", category: "Time" },
+            { word: "Datum", article: "das", english: "date", category: "Time" },
+            { word: "Kalender", article: "der", english: "calendar", category: "Time" },
+            { word: "Geburtstag", article: "der", english: "birthday", category: "Time" },
+            { word: "Feiertag", article: "der", english: "holiday", category: "Time" },
+            { word: "Weihnachten", article: "das", english: "Christmas", category: "Time" },
+            { word: "Ostern", article: "das", english: "Easter", category: "Time" },
+
+            // WEATHER & NATURE
+            { word: "Wetter", article: "das", english: "weather", category: "Weather" },
+            { word: "Sonne", article: "die", english: "sun", category: "Weather" },
+            { word: "Mond", article: "der", english: "moon", category: "Weather" },
+            { word: "Stern", article: "der", english: "star", category: "Weather" },
+            { word: "Himmel", article: "der", english: "sky", category: "Weather" },
+            { word: "Wolke", article: "die", english: "cloud", category: "Weather" },
+            { word: "Regen", article: "der", english: "rain", category: "Weather" },
+            { word: "Schnee", article: "der", english: "snow", category: "Weather" },
+            { word: "Wind", article: "der", english: "wind", category: "Weather" },
+            { word: "Sturm", article: "der", english: "storm", category: "Weather" },
+            { word: "Gewitter", article: "das", english: "thunderstorm", category: "Weather" },
+            { word: "Nebel", article: "der", english: "fog", category: "Weather" },
+            { word: "Grad", article: "der", english: "degree", category: "Weather" },
+            { word: "Temperatur", article: "die", english: "temperature", category: "Weather" },
+            { word: "Natur", article: "die", english: "nature", category: "Nature" },
+            { word: "Baum", article: "der", english: "tree", category: "Nature" },
+            { word: "Blume", article: "die", english: "flower", category: "Nature" },
+            { word: "Pflanze", article: "die", english: "plant", category: "Nature" },
+            { word: "Gras", article: "das", english: "grass", category: "Nature" },
+            { word: "Wald", article: "der", english: "forest", category: "Nature" },
+            { word: "Berg", article: "der", english: "mountain", category: "Nature" },
+            { word: "Tal", article: "das", english: "valley", category: "Nature" },
+            { word: "Fluss", article: "der", english: "river", category: "Nature" },
+            { word: "See", article: "der", english: "lake", category: "Nature" },
+            { word: "Meer", article: "das", english: "sea", category: "Nature" },
+            { word: "Strand", article: "der", english: "beach", category: "Nature" },
+            { word: "Insel", article: "die", english: "island", category: "Nature" },
+
+            // ANIMALS
+            { word: "Tier", article: "das", english: "animal", category: "Animals" },
+            { word: "Hund", article: "der", english: "dog", category: "Animals" },
+            { word: "Katze", article: "die", english: "cat", category: "Animals" },
+            { word: "Vogel", article: "der", english: "bird", category: "Animals" },
+            { word: "Pferd", article: "das", english: "horse", category: "Animals" },
+            { word: "Kuh", article: "die", english: "cow", category: "Animals" },
+            { word: "Schwein", article: "das", english: "pig", category: "Animals" },
+            { word: "Maus", article: "die", english: "mouse", category: "Animals" },
+
+            // TECHNOLOGY & MEDIA
+            { word: "Computer", article: "der", english: "computer", category: "Technology" },
+            { word: "Laptop", article: "der", english: "laptop", category: "Technology" },
+            { word: "Handy", article: "das", english: "cell phone", category: "Technology" },
+            { word: "Telefon", article: "das", english: "telephone", category: "Technology" },
+            { word: "Fernseher", article: "der", english: "television", category: "Technology" },
+            { word: "Radio", article: "das", english: "radio", category: "Technology" },
+            { word: "Kamera", article: "die", english: "camera", category: "Technology" },
+            { word: "Foto", article: "das", english: "photo", category: "Technology" },
+            { word: "Film", article: "der", english: "film/movie", category: "Technology" },
+            { word: "Video", article: "das", english: "video", category: "Technology" },
+            { word: "Internet", article: "das", english: "internet", category: "Technology" },
+            { word: "E-Mail", article: "die", english: "email", category: "Technology" },
+            { word: "Nachricht", article: "die", english: "message/news", category: "Technology" },
+            { word: "Zeitung", article: "die", english: "newspaper", category: "Technology" },
+            { word: "Zeitschrift", article: "die", english: "magazine", category: "Technology" },
+            { word: "Programm", article: "das", english: "program", category: "Technology" },
+            { word: "Seite", article: "die", english: "page/side", category: "Technology" },
+            { word: "Drucker", article: "der", english: "printer", category: "Technology" },
+
+            // LEISURE & HOBBIES
+            { word: "Freizeit", article: "die", english: "free time", category: "Leisure" },
+            { word: "Hobby", article: "das", english: "hobby", category: "Leisure" },
+            { word: "Sport", article: "der", english: "sport", category: "Leisure" },
+            { word: "Fußball", article: "der", english: "soccer", category: "Leisure" },
+            { word: "Tennis", article: "das", english: "tennis", category: "Leisure" },
+            { word: "Schwimmen", article: "das", english: "swimming", category: "Leisure" },
+            { word: "Spiel", article: "das", english: "game", category: "Leisure" },
+            { word: "Musik", article: "die", english: "music", category: "Leisure" },
+            { word: "Konzert", article: "das", english: "concert", category: "Leisure" },
+            { word: "Lied", article: "das", english: "song", category: "Leisure" },
+            { word: "Tanz", article: "der", english: "dance", category: "Leisure" },
+            { word: "Party", article: "die", english: "party", category: "Leisure" },
+            { word: "Fest", article: "das", english: "festival/party", category: "Leisure" },
+            { word: "Feier", article: "die", english: "celebration", category: "Leisure" },
+            { word: "Geschenk", article: "das", english: "gift", category: "Leisure" },
+            { word: "Reise", article: "die", english: "trip/journey", category: "Leisure" },
+            { word: "Ausflug", article: "der", english: "excursion", category: "Leisure" },
+            { word: "Koffer", article: "der", english: "suitcase", category: "Leisure" },
+            { word: "Pass", article: "der", english: "passport", category: "Leisure" },
+            { word: "Ausweis", article: "der", english: "ID card", category: "Leisure" },
+            { word: "Visum", article: "das", english: "visa", category: "Leisure" },
+
+            // COLORS (as nouns)
+            { word: "Farbe", article: "die", english: "color", category: "Colors" },
+            { word: "Rot", article: "das", english: "red (noun)", category: "Colors" },
+            { word: "Blau", article: "das", english: "blue (noun)", category: "Colors" },
+            { word: "Grün", article: "das", english: "green (noun)", category: "Colors" },
+            { word: "Gelb", article: "das", english: "yellow (noun)", category: "Colors" },
+            { word: "Schwarz", article: "das", english: "black (noun)", category: "Colors" },
+            { word: "Weiß", article: "das", english: "white (noun)", category: "Colors" },
+
+            // NUMBERS & QUANTITIES
+            { word: "Zahl", article: "die", english: "number", category: "Numbers" },
+            { word: "Nummer", article: "die", english: "number", category: "Numbers" },
+            { word: "Hälfte", article: "die", english: "half", category: "Numbers" },
+            { word: "Prozent", article: "das", english: "percent", category: "Numbers" },
+            { word: "Kilo", article: "das", english: "kilogram", category: "Numbers" },
+            { word: "Gramm", article: "das", english: "gram", category: "Numbers" },
+            { word: "Liter", article: "der", english: "liter", category: "Numbers" },
+            { word: "Meter", article: "der", english: "meter", category: "Numbers" },
+            { word: "Kilometer", article: "der", english: "kilometer", category: "Numbers" },
+            { word: "Stück", article: "das", english: "piece", category: "Numbers" },
+            { word: "Paar", article: "das", english: "pair", category: "Numbers" },
+            { word: "Menge", article: "die", english: "quantity", category: "Numbers" },
+            { word: "Teil", article: "der", english: "part", category: "Numbers" },
+            { word: "Größe", article: "die", english: "size", category: "Numbers" },
+
+            // ABSTRACT CONCEPTS
+            { word: "Name", article: "der", english: "name", category: "Abstract" },
+            { word: "Adresse", article: "die", english: "address", category: "Abstract" },
+            { word: "Alter", article: "das", english: "age", category: "Abstract" },
+            { word: "Leben", article: "das", english: "life", category: "Abstract" },
+            { word: "Tod", article: "der", english: "death", category: "Abstract" },
+            { word: "Glück", article: "das", english: "happiness/luck", category: "Abstract" },
+            { word: "Liebe", article: "die", english: "love", category: "Abstract" },
+            { word: "Freude", article: "die", english: "joy", category: "Abstract" },
+            { word: "Angst", article: "die", english: "fear", category: "Abstract" },
+            { word: "Hoffnung", article: "die", english: "hope", category: "Abstract" },
+            { word: "Traum", article: "der", english: "dream", category: "Abstract" },
+            { word: "Idee", article: "die", english: "idea", category: "Abstract" },
+            { word: "Meinung", article: "die", english: "opinion", category: "Abstract" },
+            { word: "Grund", article: "der", english: "reason", category: "Abstract" },
+            { word: "Ziel", article: "das", english: "goal", category: "Abstract" },
+            { word: "Plan", article: "der", english: "plan", category: "Abstract" },
+            { word: "Regel", article: "die", english: "rule", category: "Abstract" },
+            { word: "Gesetz", article: "das", english: "law", category: "Abstract" },
+            { word: "Recht", article: "das", english: "right/law", category: "Abstract" },
+            { word: "Pflicht", article: "die", english: "duty", category: "Abstract" },
+            { word: "Chance", article: "die", english: "chance", category: "Abstract" },
+            { word: "Möglichkeit", article: "die", english: "possibility", category: "Abstract" },
+            { word: "Wahrheit", article: "die", english: "truth", category: "Abstract" },
+            { word: "Lüge", article: "die", english: "lie", category: "Abstract" },
+            { word: "Erfolg", article: "der", english: "success", category: "Abstract" },
+            { word: "Unterschied", article: "der", english: "difference", category: "Abstract" },
+            { word: "Hilfe", article: "die", english: "help", category: "Abstract" },
+            { word: "Information", article: "die", english: "information", category: "Abstract" },
+            { word: "Interesse", article: "das", english: "interest", category: "Abstract" },
+            { word: "Erfahrung", article: "die", english: "experience", category: "Abstract" },
+            { word: "Erinnerung", article: "die", english: "memory", category: "Abstract" },
+            { word: "Geschichte", article: "die", english: "story/history", category: "Abstract" },
+            { word: "Kultur", article: "die", english: "culture", category: "Abstract" },
+            { word: "Tradition", article: "die", english: "tradition", category: "Abstract" },
+            { word: "Religion", article: "die", english: "religion", category: "Abstract" },
+            { word: "Politik", article: "die", english: "politics", category: "Abstract" },
+            { word: "Wirtschaft", article: "die", english: "economy", category: "Abstract" },
+            { word: "Gesellschaft", article: "die", english: "society", category: "Abstract" },
+            { word: "Umwelt", article: "die", english: "environment", category: "Abstract" },
+            { word: "Energie", article: "die", english: "energy", category: "Abstract" },
+
+            // DIRECTIONS & POSITIONS
+            { word: "Richtung", article: "die", english: "direction", category: "Directions" },
+            { word: "Norden", article: "der", english: "north", category: "Directions" },
+            { word: "Süden", article: "der", english: "south", category: "Directions" },
+            { word: "Osten", article: "der", english: "east", category: "Directions" },
+            { word: "Westen", article: "der", english: "west", category: "Directions" },
+            { word: "Mitte", article: "die", english: "middle", category: "Directions" },
+            { word: "Seite", article: "die", english: "side", category: "Directions" },
+            { word: "Ecke", article: "die", english: "corner", category: "Directions" },
+            { word: "Ende", article: "das", english: "end", category: "Directions" },
+            { word: "Anfang", article: "der", english: "beginning", category: "Directions" },
+            { word: "Weg", article: "der", english: "way/path", category: "Directions" },
+
+            // COMMUNICATION
+            { word: "Brief", article: "der", english: "letter", category: "Communication" },
+            { word: "Postkarte", article: "die", english: "postcard", category: "Communication" },
+            { word: "Paket", article: "das", english: "package", category: "Communication" },
+            { word: "Gespräch", article: "das", english: "conversation", category: "Communication" },
+            { word: "Diskussion", article: "die", english: "discussion", category: "Communication" },
+            { word: "Stimme", article: "die", english: "voice", category: "Communication" },
+            { word: "Text", article: "der", english: "text", category: "Communication" },
+            { word: "Titel", article: "der", english: "title", category: "Communication" },
+            { word: "Thema", article: "das", english: "topic", category: "Communication" },
+            { word: "Formular", article: "das", english: "form", category: "Communication" },
+            { word: "Unterschrift", article: "die", english: "signature", category: "Communication" },
+            { word: "Dokument", article: "das", english: "document", category: "Communication" },
+
+            // MATERIALS
+            { word: "Material", article: "das", english: "material", category: "Materials" },
+            { word: "Holz", article: "das", english: "wood", category: "Materials" },
+            { word: "Metall", article: "das", english: "metal", category: "Materials" },
+            { word: "Glas", article: "das", english: "glass", category: "Materials" },
+            { word: "Plastik", article: "das", english: "plastic", category: "Materials" },
+            { word: "Stoff", article: "der", english: "fabric/material", category: "Materials" },
+            { word: "Leder", article: "das", english: "leather", category: "Materials" },
+            { word: "Stein", article: "der", english: "stone", category: "Materials" },
+
+            // MISC EVERYDAY
+            { word: "Ding", article: "das", english: "thing", category: "Everyday" },
+            { word: "Sache", article: "die", english: "thing/matter", category: "Everyday" },
+            { word: "Gegenstand", article: "der", english: "object", category: "Everyday" },
+            { word: "Schlüssel", article: "der", english: "key", category: "Everyday" },
+            { word: "Portemonnaie", article: "das", english: "wallet", category: "Everyday" },
+            { word: "Geldbeutel", article: "der", english: "wallet", category: "Everyday" },
+            { word: "Regenschirm", article: "der", english: "umbrella", category: "Everyday" },
+            { word: "Batterie", article: "die", english: "battery", category: "Everyday" },
+            { word: "Stecker", article: "der", english: "plug", category: "Everyday" },
+            { word: "Kabel", article: "das", english: "cable", category: "Everyday" },
+            { word: "Schachtel", article: "die", english: "box", category: "Everyday" },
+            { word: "Dose", article: "die", english: "can/tin", category: "Everyday" },
+            { word: "Tüte", article: "die", english: "bag", category: "Everyday" },
+            { word: "Korb", article: "der", english: "basket", category: "Everyday" },
+            { word: "Müll", article: "der", english: "trash", category: "Everyday" },
+            { word: "Abfall", article: "der", english: "waste", category: "Everyday" },
+            { word: "Lärm", article: "der", english: "noise", category: "Everyday" },
+            { word: "Licht", article: "das", english: "light", category: "Everyday" },
+            { word: "Schatten", article: "der", english: "shadow", category: "Everyday" },
+            { word: "Feuer", article: "das", english: "fire", category: "Everyday" },
+            { word: "Luft", article: "die", english: "air", category: "Everyday" },
+            { word: "Wärme", article: "die", english: "warmth", category: "Everyday" },
+            { word: "Kälte", article: "die", english: "cold", category: "Everyday" },
+            { word: "Geruch", article: "der", english: "smell", category: "Everyday" },
+            { word: "Geschmack", article: "der", english: "taste", category: "Everyday" },
+        ];
+
+        // Storage key
+        const STORAGE_KEY = 'german-articles-progress';
+
+        // State
+        let currentIndex = 0;
+        let correctCount = 0;
+        let wrongCount = 0;
+        let streak = 0;
+        let answered = new Set();
+        let shuffledVocab = [...vocabulary];
+        let filteredVocab = [...vocabulary];
+        let showTranslation = false;
+        let wordHistory = {}; // { "word": { correct: 0, wrong: 0 } }
+        let practicingMistakes = false;
+
+        // DOM elements
+        const wordEl = document.getElementById('word');
+        const wordStatusEl = document.getElementById('wordStatus');
+        const categoryEl = document.getElementById('category');
+        const translationEl = document.getElementById('translation');
+        const hintBtn = document.getElementById('hintBtn');
+        const feedbackEl = document.getElementById('feedback');
+        const correctEl = document.getElementById('correct');
+        const wrongEl = document.getElementById('wrong');
+        const streakEl = document.getElementById('streak');
+        const masteredEl = document.getElementById('mastered');
+        const totalWordsEl = document.getElementById('totalWords');
+        const progressBar = document.getElementById('progressBar');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const shuffleBtn = document.getElementById('shuffleBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const mistakesBtn = document.getElementById('mistakesBtn');
+        const mistakesCount = document.getElementById('mistakesCount');
+        const articleBtns = document.querySelectorAll('.article-btn');
+
+        // Initialize categories
+        function initCategories() {
+            const categories = [...new Set(vocabulary.map(v => v.category))].sort();
+            categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                categoryFilter.appendChild(option);
+            });
+        }
+
+        // Load progress from localStorage
+        function loadProgress() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    correctCount = data.correctCount || 0;
+                    wrongCount = data.wrongCount || 0;
+                    wordHistory = data.wordHistory || {};
+                    updateStats();
+                }
+            } catch (e) {
+                console.error('Failed to load progress:', e);
+            }
+        }
+
+        // Save progress to localStorage
+        function saveProgress() {
+            try {
+                const data = {
+                    correctCount,
+                    wrongCount,
+                    wordHistory
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            } catch (e) {
+                console.error('Failed to save progress:', e);
+            }
+        }
+
+        // Get words that have been answered wrong more than correct
+        function getMistakeWords() {
+            return vocabulary.filter(v => {
+                const history = wordHistory[v.word];
+                return history && history.wrong > history.correct;
+            });
+        }
+
+        // Get mastered words (correct > wrong, must have at least 1 attempt)
+        function getMasteredWords() {
+            return vocabulary.filter(v => {
+                const history = wordHistory[v.word];
+                return history && history.correct > history.wrong;
+            });
+        }
+
+        // Update mistakes count display
+        function updateMistakesCount() {
+            const mistakes = getMistakeWords();
+            mistakesCount.textContent = `(${mistakes.length})`;
+            mistakesBtn.classList.toggle('active', practicingMistakes);
+        }
+
+        // Update mastery display
+        function updateMasteryDisplay() {
+            const mastered = getMasteredWords();
+            masteredEl.textContent = mastered.length;
+            totalWordsEl.textContent = vocabulary.length;
+
+            // Progress bar shows mastery progress
+            const percent = (mastered.length / vocabulary.length) * 100;
+            progressBar.style.width = percent + '%';
+        }
+
+        // Shuffle array
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Filter and shuffle vocabulary
+        function filterVocab() {
+            const category = categoryFilter.value;
+            if (category === 'all') {
+                filteredVocab = [...vocabulary];
+            } else {
+                filteredVocab = vocabulary.filter(v => v.category === category);
+            }
+            shuffledVocab = shuffle([...filteredVocab]);
+            currentIndex = 0;
+            answered.clear();
+            updateTotal();
+            showWord();
+        }
+
+        // Show current word
+        function showWord() {
+            if (currentIndex >= shuffledVocab.length) {
+                currentIndex = 0;
+                shuffle(shuffledVocab);
+            }
+
+            const current = shuffledVocab[currentIndex];
+            wordEl.textContent = current.word;
+            categoryEl.textContent = current.category;
+            translationEl.textContent = '';
+            feedbackEl.textContent = '';
+            feedbackEl.className = 'feedback';
+            wordEl.style.color = 'var(--text)';
+            showTranslation = false;
+            hintBtn.textContent = 'Show translation';
+
+            // Show word mastery status
+            const history = wordHistory[current.word];
+            if (history) {
+                const total = history.correct + history.wrong;
+                if (history.correct > history.wrong) {
+                    wordStatusEl.textContent = `Mastered (${history.correct}✓ ${history.wrong}✗)`;
+                    wordStatusEl.className = 'word-status mastered';
+                } else if (history.correct === history.wrong) {
+                    wordStatusEl.textContent = `Learning (${history.correct}✓ ${history.wrong}✗)`;
+                    wordStatusEl.className = 'word-status';
+                } else {
+                    const needed = history.wrong - history.correct + 1;
+                    wordStatusEl.textContent = `Need ${needed} more correct (${history.correct}✓ ${history.wrong}✗)`;
+                    wordStatusEl.className = 'word-status needs-practice';
+                }
+            } else {
+                wordStatusEl.textContent = 'New word';
+                wordStatusEl.className = 'word-status';
+            }
+
+            articleBtns.forEach(btn => {
+                btn.classList.remove('correct', 'wrong');
+                btn.disabled = false;
+            });
+        }
+
+        // Check answer
+        function checkAnswer(selectedArticle) {
+            const current = shuffledVocab[currentIndex];
+            const isCorrect = selectedArticle === current.article;
+
+            articleBtns.forEach(btn => {
+                btn.disabled = true;
+                if (btn.dataset.article === current.article) {
+                    btn.classList.add('correct');
+                } else if (btn.dataset.article === selectedArticle && !isCorrect) {
+                    btn.classList.add('wrong');
+                }
+            });
+
+            // Track per-word history
+            if (!wordHistory[current.word]) {
+                wordHistory[current.word] = { correct: 0, wrong: 0 };
+            }
+
+            if (isCorrect) {
+                correctCount++;
+                streak++;
+                wordHistory[current.word].correct++;
+                feedbackEl.textContent = 'Correct!';
+                feedbackEl.className = 'feedback correct';
+                wordEl.style.color = current.article === 'der' ? 'var(--der)' :
+                                     current.article === 'die' ? 'var(--die)' : 'var(--das)';
+            } else {
+                wrongCount++;
+                streak = 0;
+                wordHistory[current.word].wrong++;
+                feedbackEl.textContent = `Wrong! It's "${current.article} ${current.word}"`;
+                feedbackEl.className = 'feedback wrong';
+                wordEl.style.color = 'var(--wrong)';
+            }
+
+            translationEl.textContent = current.english;
+            answered.add(currentIndex);
+            updateStats();
+            updateMistakesCount();
+            updateMasteryDisplay();
+            saveProgress();
+
+            // Check if word is now mastered and we're practicing mistakes
+            const history = wordHistory[current.word];
+            const nowMastered = history && history.correct > history.wrong;
+
+            // Auto advance after delay
+            setTimeout(() => {
+                // If practicing mistakes and this word is now mastered, remove it from the list
+                if (practicingMistakes && nowMastered) {
+                    shuffledVocab = shuffledVocab.filter(v => v.word !== current.word);
+                    updateTotal();
+
+                    // If no more mistakes, show completion and exit practice mode
+                    if (shuffledVocab.length === 0) {
+                        practicingMistakes = false;
+                        updateMistakesCount();
+                        alert('Great job! You\'ve corrected all your mistakes!');
+                        filterVocab();
+                        return;
+                    }
+
+                    // Adjust index if needed
+                    if (currentIndex >= shuffledVocab.length) {
+                        currentIndex = 0;
+                    }
+                } else {
+                    currentIndex++;
+                }
+                showWord();
+            }, 1500);
+        }
+
+        // Toggle translation hint
+        function toggleHint() {
+            showTranslation = !showTranslation;
+            const current = shuffledVocab[currentIndex];
+            translationEl.textContent = showTranslation ? current.english : '';
+            hintBtn.textContent = showTranslation ? 'Hide translation' : 'Show translation';
+        }
+
+        // Update stats display
+        function updateStats() {
+            correctEl.textContent = correctCount;
+            wrongEl.textContent = wrongCount;
+            streakEl.textContent = streak;
+        }
+
+        // Update total display (for current set)
+        function updateTotal() {
+            // This updates the practice set size in mistakes mode
+        }
+
+        // Reset progress
+        function resetProgress() {
+            if (!confirm('This will clear all your saved progress. Are you sure?')) {
+                return;
+            }
+            currentIndex = 0;
+            correctCount = 0;
+            wrongCount = 0;
+            streak = 0;
+            answered.clear();
+            wordHistory = {};
+            practicingMistakes = false;
+            localStorage.removeItem(STORAGE_KEY);
+            filterVocab();
+            updateStats();
+            updateMistakesCount();
+            updateMasteryDisplay();
+            showWord();
+        }
+
+        // Toggle practice mistakes mode
+        function togglePracticeMistakes() {
+            const mistakes = getMistakeWords();
+            if (mistakes.length === 0) {
+                const mastered = getMasteredWords();
+                if (mastered.length === vocabulary.length) {
+                    alert('Amazing! You\'ve mastered all ' + vocabulary.length + ' words!');
+                } else {
+                    alert('No mistakes to practice! Keep learning and come back when you need extra practice.');
+                }
+                return;
+            }
+
+            practicingMistakes = !practicingMistakes;
+
+            if (practicingMistakes) {
+                filteredVocab = mistakes;
+                shuffledVocab = shuffle([...filteredVocab]);
+                categoryFilter.value = 'all';
+            } else {
+                filterVocab();
+            }
+
+            currentIndex = 0;
+            answered.clear();
+            updateMistakesCount();
+            showWord();
+        }
+
+        // Event listeners
+        articleBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (!btn.disabled) {
+                    checkAnswer(btn.dataset.article);
+                }
+            });
+        });
+
+        hintBtn.addEventListener('click', toggleHint);
+        categoryFilter.addEventListener('change', () => {
+            practicingMistakes = false;
+            updateMistakesCount();
+            filterVocab();
+        });
+        shuffleBtn.addEventListener('click', () => {
+            shuffle(shuffledVocab);
+            currentIndex = 0;
+            showWord();
+        });
+        resetBtn.addEventListener('click', resetProgress);
+        mistakesBtn.addEventListener('click', togglePracticeMistakes);
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '1') {
+                const btn = document.querySelector('.article-btn.der');
+                if (!btn.disabled) checkAnswer('der');
+            } else if (e.key === '2') {
+                const btn = document.querySelector('.article-btn.die');
+                if (!btn.disabled) checkAnswer('die');
+            } else if (e.key === '3') {
+                const btn = document.querySelector('.article-btn.das');
+                if (!btn.disabled) checkAnswer('das');
+            } else if (e.key.toLowerCase() === 'h') {
+                toggleHint();
+            } else if (e.key === ' ') {
+                e.preventDefault();
+                const anyDisabled = [...articleBtns].some(btn => btn.disabled);
+                if (anyDisabled) {
+                    currentIndex++;
+                    showWord();
+                }
+            } else if (e.key === 'Escape') {
+                document.getElementById('infoModal').classList.remove('show');
+            }
+        });
+
+        // Info modal
+        const infoBtn = document.getElementById('infoBtn');
+        const infoModal = document.getElementById('infoModal');
+        const infoClose = document.getElementById('infoClose');
+
+        infoBtn.addEventListener('click', () => {
+            infoModal.classList.add('show');
+        });
+
+        infoClose.addEventListener('click', () => {
+            infoModal.classList.remove('show');
+        });
+
+        infoModal.addEventListener('click', (e) => {
+            if (e.target === infoModal) {
+                infoModal.classList.remove('show');
+            }
+        });
+
+        // Initialize
+        initCategories();
+        loadProgress();
+        shuffle(shuffledVocab);
+        updateMistakesCount();
+        updateMasteryDisplay();
+        showWord();
+    </script>
+</body>
+</html>
