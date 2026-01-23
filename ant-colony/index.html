@@ -35,6 +35,67 @@
             touch-action: none;
         }
 
+        /* Work in Progress Overlay */
+        .wip-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+        }
+
+        .wip-overlay.hidden {
+            display: none;
+        }
+
+        .wip-icon {
+            font-size: 64px;
+            animation: wip-bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes wip-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .wip-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            color: var(--accent);
+            text-align: center;
+        }
+
+        .wip-message {
+            font-family: 'DM Mono', monospace;
+            font-size: 14px;
+            color: var(--text-muted);
+            text-align: center;
+            max-width: 400px;
+            line-height: 1.6;
+        }
+
+        .wip-back-link {
+            margin-top: 16px;
+            font-family: 'DM Mono', monospace;
+            font-size: 13px;
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 10px 20px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .wip-back-link:hover {
+            color: var(--accent);
+            border-color: var(--accent);
+            background: var(--accent-glow);
+        }
+
         #canvas {
             position: fixed;
             top: 0;
@@ -850,6 +911,56 @@
             padding: 12px 18px;
             align-items: center;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Food Levels Panel (read-only display) */
+        .food-levels-panel {
+            display: flex;
+            gap: 6px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(16px);
+            border-radius: 12px;
+            padding: 10px 16px;
+            align-items: center;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .food-levels-label {
+            color: var(--text-muted);
+            font-size: 10px;
+            margin-right: 8px;
+            font-family: 'DM Mono', monospace;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            opacity: 0.6;
+        }
+
+        .food-level-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            padding: 6px 8px;
+            background: rgba(50, 60, 45, 0.3);
+            border-radius: 8px;
+            min-width: 40px;
+        }
+
+        .food-level-item .emoji {
+            font-size: 18px;
+        }
+
+        .food-level-item .food-level {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .food-level-item .food-level.max-level {
+            color: var(--gold);
+            text-shadow: 0 0 8px rgba(244, 208, 63, 0.6);
         }
 
         .food-label, .ant-label {
@@ -1985,6 +2096,17 @@
     </style>
 </head>
 <body>
+    <!-- Work in Progress Overlay - shown on public site, hidden on localhost -->
+    <div class="wip-overlay" id="wip-overlay">
+        <div class="wip-icon">🐜</div>
+        <h1 class="wip-title">Work in Progress</h1>
+        <p class="wip-message">
+            The ant colony simulation is currently under development.
+            Check back soon for the full experience!
+        </p>
+        <a href="/" class="wip-back-link">← back to hafnr</a>
+    </div>
+
     <canvas id="canvas"></canvas>
 
     <div class="ui-overlay">
@@ -2056,28 +2178,29 @@
     </div>
 
     <div class="bottom-ui">
-        <div class="food-selector">
-            <span class="food-label">drop</span>
-            <button class="food-btn" data-food="sugar" title="Sugar - +HP per unit. Lv.10: Gold Hunter">
+        <!-- Food Levels Display -->
+        <div class="food-levels-panel">
+            <span class="food-levels-label">Food Levels</span>
+            <div class="food-level-item" title="Sugar - +HP per unit. Lv.10: Gold Hunter">
                 <span class="emoji">🍬</span>
-                <span class="food-level" id="sugar-level">Lv.1</span>
-            </button>
-            <button class="food-btn" data-food="protein" title="Protein - +ATK per unit. Lv.10: Lifesteal">
+                <span class="food-level" id="sugar-level">1</span>
+            </div>
+            <div class="food-level-item" title="Protein - +ATK per unit. Lv.10: Lifesteal">
                 <span class="emoji">🍖</span>
-                <span class="food-level" id="protein-level">Lv.1</span>
-            </button>
-            <button class="food-btn" data-food="fruit" title="Fruit - +Carry per unit. Lv.10: Fresh Keeper">
+                <span class="food-level" id="protein-level">1</span>
+            </div>
+            <div class="food-level-item" title="Fruit - +Carry per unit. Lv.10: Fresh Keeper">
                 <span class="emoji">🍇</span>
-                <span class="food-level" id="fruit-level">Lv.1</span>
-            </button>
-            <button class="food-btn" data-food="feast" title="Feast - +DEF per unit. Lv.10: Thorns">
+                <span class="food-level" id="fruit-level">1</span>
+            </div>
+            <div class="food-level-item" title="Feast - +DEF per unit. Lv.10: Thorns">
                 <span class="emoji">🍯</span>
-                <span class="food-level" id="feast-level">Lv.1</span>
-            </button>
-            <button class="food-btn" data-food="nectar" title="Nectar - +HP per unit. Lv.10: Regeneration">
+                <span class="food-level" id="feast-level">1</span>
+            </div>
+            <div class="food-level-item" title="Nectar - +HP per unit. Lv.10: Regeneration">
                 <span class="emoji">🌸</span>
-                <span class="food-level" id="nectar-level">Lv.1</span>
-            </button>
+                <span class="food-level" id="nectar-level">1</span>
+            </div>
         </div>
         <!-- Cycle Timer Display -->
         <div class="cycle-timer" id="cycle-timer">
@@ -2449,7 +2572,7 @@
         // MAP SPOTS (Food & Predator spawn points)
         // ===========================================
 
-        let foodSpots = [];      // 3 spots where food can be placed
+        let foodSpots = [];      // 5 spots for the 5 food types
         let predatorSpots = [];  // 2 spots where predators spawn (spider, beetle)
 
         function generateMapSpots() {
@@ -2457,11 +2580,10 @@
             predatorSpots = [];
 
             const margin = 100;
-            const nestSafeRadius = 150;  // Keep spots away from nest
-            const foodSpotSpacing = 350; // Minimum distance between food spots for better spread
+            const foodSpotSpacing = 200; // Minimum distance between food spots
 
-            // Generate 3 food spots - well spaced across the map
-            for (let i = 0; i < 3; i++) {
+            // Generate 5 food spots - one for each food type, well spaced across the map
+            for (let i = 0; i < 5; i++) {
                 let spot;
                 let attempts = 0;
                 do {
@@ -2469,13 +2591,12 @@
                         x: rng.nextRange(margin, width - margin),
                         y: rng.nextRange(margin, height - margin),
                         type: 'food',
-                        radius: 60,
+                        radius: 55,
                         multiplier: 1  // Default multiplier, will be set in placeHive()
                     };
                     attempts++;
                 } while (
-                    (Math.hypot(spot.x - CONFIG.nestX, spot.y - CONFIG.nestY) < nestSafeRadius ||
-                    foodSpots.some(s => Math.hypot(s.x - spot.x, s.y - spot.y) < foodSpotSpacing)) &&
+                    (foodSpots.some(s => Math.hypot(s.x - spot.x, s.y - spot.y) < foodSpotSpacing)) &&
                     attempts < 50
                 );
                 foodSpots.push(spot);
@@ -2495,8 +2616,7 @@
                     };
                     attempts++;
                 } while (
-                    (Math.hypot(spot.x - CONFIG.nestX, spot.y - CONFIG.nestY) < nestSafeRadius + 50 ||
-                    foodSpots.some(s => Math.hypot(s.x - spot.x, s.y - spot.y) < 100) ||
+                    (foodSpots.some(s => Math.hypot(s.x - spot.x, s.y - spot.y) < 100) ||
                     predatorSpots.some(s => Math.hypot(s.x - spot.x, s.y - spot.y) < 150)) &&
                     attempts < 50
                 );
@@ -2552,15 +2672,24 @@
                 ctx.stroke();
                 ctx.setLineDash([]);
 
-                // Label - show "OCCUPIED" if zone has food
+                // Label - show the food type for this zone
                 ctx.fillStyle = labelColor;
-                ctx.globalAlpha = isOccupied ? 0.4 : 1.0;
                 ctx.font = 'bold 10px "DM Mono", monospace';
                 ctx.textAlign = 'center';
-                ctx.fillText(isOccupied ? 'OCCUPIED' : 'FOOD ZONE', spot.x, spot.y - spot.radius - 8);
-                ctx.globalAlpha = 1.0;
 
-                // Multiplier badge
+                // Before hive placement, show food type; after, show food type + level
+                if (gameStarted && spot.assignedFoodType) {
+                    const foodType = spot.assignedFoodType;
+                    const foodConfig = CONFIG.foodTypes[foodType];
+                    const emoji = foodConfig ? foodConfig.emoji : '🍽️';
+                    const level = foodLevels[foodType] || 1;
+                    ctx.fillText(`${emoji} Lv.${level}`, spot.x, spot.y - spot.radius - 8);
+                } else {
+                    // Before hive placement - show generic food zone label
+                    ctx.fillText('FOOD ZONE', spot.x, spot.y - spot.radius - 8);
+                }
+
+                // Multiplier badge - show "?" before hive placement, actual multiplier after
                 const badgeX = spot.x + spot.radius * 0.7;
                 const badgeY = spot.y - spot.radius * 0.5;
                 ctx.fillStyle = `rgba(${baseColor.r}, ${baseColor.g}, ${baseColor.b}, ${0.9 * alphaMultiplier})`;
@@ -2569,7 +2698,9 @@
                 ctx.fill();
                 ctx.fillStyle = '#1a1a1a';
                 ctx.font = 'bold 11px "DM Mono", monospace';
-                ctx.fillText(`x${multiplier}`, badgeX, badgeY + 4);
+                // Show multiplier preview during hive placement, "?" before, actual value after
+                const badgeText = gameStarted ? `x${multiplier}` : (isPreviewingHivePlacement ? `x${multiplier}` : '?');
+                ctx.fillText(badgeText, badgeX, badgeY + 4);
 
                 ctx.restore();
             }
@@ -3628,13 +3759,14 @@
         document.getElementById('upgrade-expand-btn').addEventListener('click', toggleUpgradePanel);
 
         function checkUpgradeTime() {
-            if (gameOver || upgradesPaused) return;
+            if (gameOver || upgradesPaused || harvestModalOpen) return;
 
             const elapsed = getElapsedSeconds();
             const timeSinceLastUpgrade = elapsed - lastUpgradeTime;
 
             if (timeSinceLastUpgrade >= UPGRADE_INTERVAL) {
-                showUpgradeSelection();
+                // First show harvest summary, then upgrades will show after ant spawns
+                triggerHarvestSummary();
             }
         }
 
@@ -4891,45 +5023,17 @@
                 this.inDangerZone = isInDangerZone(x, y);
                 this.zoneMultiplier = getFoodZoneMultiplier(x, y);  // Distance-based multiplier (x1, x2, x3)
                 this.zoneSpot = zoneSpot;  // Reference to the zone spot this food is in
-                this.spawnTime = Date.now();  // Real timestamp when food was created
-                this.spoiled = false;
+                this.spawnTime = Date.now();
                 this.unitsDelivered = 0;  // Track how many units have been successfully delivered
-                this.pausedDuration = 0;  // Track paused time from Fresh Keeper ability (in ms)
-                this.lastUpdateTime = Date.now();  // For tracking Fresh Keeper pause time
             }
 
             update() {
-                const now = Date.now();
-                const deltaTime = now - this.lastUpdateTime;
-                this.lastUpdateTime = now;
-
-                // FRESH KEEPER ABILITY: Check if any ant carrying from this food has the ability
-                let hasFreshKeeper = false;
-                for (const ant of ants) {
-                    if (ant.carriedFoodPiece && ant.carriedFoodPiece.sourceFood === this) {
-                        if (ant.hasHarvestAbility && ant.hasHarvestAbility('freshKeeper')) {
-                            hasFreshKeeper = true;
-                            break;
-                        }
-                    }
-                }
-
-                // If Fresh Keeper is active, pause the timer
-                if (hasFreshKeeper) {
-                    this.pausedDuration += deltaTime;
-                }
-
-                if (this.getTimeRemaining() <= 0 && !this.spoiled) {
-                    this.spoiled = true;
-                    // On spoil, food level goes down by 1 (min 1)
-                    this.onSpoilOrFail();
-                }
+                // Food no longer spoils - it stays until fully delivered
             }
 
             getTimeRemaining() {
-                // Account for paused time from Fresh Keeper
-                const elapsed = (Date.now() - this.spawnTime - this.pausedDuration) / 1000;  // Seconds elapsed
-                return Math.max(0, Math.ceil(FOOD_LIFETIME_SECONDS - elapsed));
+                // Food doesn't expire anymore
+                return 999;
             }
 
             getRadius() {
@@ -4943,20 +5047,7 @@
                 return 0;
             }
 
-            // Called when food spoils or fails (not fully delivered)
-            onSpoilOrFail() {
-                if (this.unitsDelivered < this.maxSize) {
-                    // Not fully delivered - level down
-                    foodLevels[this.type] = Math.max(1, foodLevels[this.type] - 1);
-                    spawnFloatingText(this.x, this.y - 20, `${this.emoji} Lv.DOWN!`, '#ff4444', 12);
-                }
-                // Clear zone occupation
-                if (this.zoneSpot !== null) {
-                    zoneOccupied.delete(this.zoneSpot);
-                }
-            }
-
-            // Called when food is fully delivered
+            // Called when food is fully delivered - respawns with leveled up food
             onFullyDelivered() {
                 // Level up based on zone multiplier (x1 = +1, x2 = +2, x3 = +3)
                 const levelGain = this.zoneMultiplier;
@@ -4965,21 +5056,32 @@
                 const newLevel = foodLevels[this.type];
 
                 if (newLevel > oldLevel) {
-                    spawnFloatingText(CONFIG.nestX, CONFIG.nestY - 30, `${this.emoji} Lv.${newLevel}!`, '#00ff88', 14);
+                    spawnFloatingText(this.x, this.y - 20, `${this.emoji} Lv.${newLevel}!`, '#00ff88', 14);
                 }
 
                 // Check for Lv.10 ability unlock
                 if (newLevel >= 10 && oldLevel < 10) {
                     const bonus = FOOD_BONUSES[this.type];
                     if (bonus && bonus.ability) {
-                        spawnFloatingText(CONFIG.nestX, CONFIG.nestY - 50, `ABILITY: ${bonus.abilityName}!`, '#ffd700', 16);
+                        spawnFloatingText(this.x, this.y - 40, `${bonus.abilityName}!`, '#ffd700', 16);
                     }
                 }
 
-                // Clear zone occupation
+                // Schedule respawn of this food at the same spot
+                const respawnX = this.x;
+                const respawnY = this.y;
+                const respawnType = this.type;
+                const respawnSpot = this.zoneSpot;
+
+                // Clear zone occupation temporarily
                 if (this.zoneSpot !== null) {
                     zoneOccupied.delete(this.zoneSpot);
                 }
+
+                // Respawn food after a short delay (1 second)
+                setTimeout(() => {
+                    respawnFoodAtZone(respawnSpot, respawnType, respawnX, respawnY);
+                }, 1000);
             }
 
             // Single ant can always carry 1 unit
@@ -5010,19 +5112,11 @@
                 const r = this.getRadius();
                 if (r < 3) return;  // Too small to draw
 
-                const timeLeft = this.getTimeRemaining();
                 const foodConfig = CONFIG.foodTypes[this.type];
                 const isRare = foodConfig.isRare || false;
 
-                // Calculate freshness for visual dimming (1.0 = fresh, 0.5 = stale)
-                const freshnessPercent = timeLeft / FOOD_LIFETIME_SECONDS;
-                const freshness = Math.max(0.5, freshnessPercent);
-
                 ctx.save();
                 ctx.translate(this.x, this.y);
-
-                // Apply freshness dimming to the whole food rendering
-                ctx.globalAlpha = freshness;
 
                 // Shadow (offset more so it doesn't darken the emoji)
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
@@ -5057,7 +5151,6 @@
 
                 // Sparkle effect for rare food
                 if (isRare) {
-                    ctx.globalAlpha = 1;  // Sparkles at full brightness
                     const sparkleCount = 4;
                     for (let i = 0; i < sparkleCount; i++) {
                         const angle = (Date.now() / 500 + i * Math.PI * 2 / sparkleCount) % (Math.PI * 2);
@@ -5070,7 +5163,6 @@
                         ctx.arc(sx, sy, sparkleSize, 0, Math.PI * 2);
                         ctx.fill();
                     }
-                    ctx.globalAlpha = freshness;
                 }
 
                 // Draw emoji scaled to size
@@ -5078,17 +5170,9 @@
                 ctx.font = `${fontSize}px Arial`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-
-                // Apply grayscale filter for very stale food
-                if (freshnessPercent < 0.3) {
-                    ctx.filter = `grayscale(${(0.3 - freshnessPercent) * 200}%)`;
-                }
                 ctx.fillText(this.emoji, 0, 0);
-                ctx.filter = 'none';
 
-                ctx.globalAlpha = 1;  // Reset for UI elements
-
-                // Size indicator
+                // Size indicator (units remaining)
                 if (this.size > 1) {
                     ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
                     ctx.beginPath();
@@ -5097,30 +5181,6 @@
                     ctx.fillStyle = '#fff';
                     ctx.font = 'bold 10px "DM Mono", monospace';
                     ctx.fillText(Math.floor(this.size), r * 0.8, -r * 0.6);
-                }
-
-                // Timer indicator - shows seconds remaining
-                const timerColor = timeLeft <= 10 ? 'rgba(255, 80, 80, 0.9)' :
-                                   timeLeft <= 20 ? 'rgba(255, 180, 80, 0.9)' :
-                                   'rgba(255, 255, 255, 0.7)';
-                ctx.fillStyle = timerColor;
-                ctx.font = 'bold 9px "DM Mono", monospace';
-                ctx.fillText(`${timeLeft}s`, 0, r + 12);
-
-                // Effect indicator for food with special effects
-                if (foodConfig.effect && foodConfig.effectDesc) {
-                    ctx.fillStyle = foodConfig.effectColor || '#fff';
-                    ctx.font = 'bold 8px "DM Mono", monospace';
-                    ctx.fillText(foodConfig.effectDesc, 0, r + 22);
-                }
-
-                // Spoiling warning flash
-                if (timeLeft <= 10 && Math.floor(time / 15) % 2 === 0) {
-                    ctx.strokeStyle = 'rgba(255, 80, 80, 0.5)';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.arc(0, 0, r + 6, 0, Math.PI * 2);
-                    ctx.stroke();
                 }
 
                 // "RARE!" indicator for rare food
@@ -5184,6 +5244,46 @@
             spawnFloatingText(nearestSpot.x, nearestSpot.y - 30, `Lv.${level}`, '#00ff88', 12);
 
             return true;
+        }
+
+        // Food types assigned to each zone (by zone index after sorting by distance)
+        // Closest zones get simpler foods, farther zones get better foods
+        const ZONE_FOOD_TYPES = ['sugar', 'protein', 'fruit', 'feast', 'nectar'];
+
+        // Respawn food at a specific zone
+        function respawnFoodAtZone(zoneIndex, foodType, x, y) {
+            if (zoneOccupied.has(zoneIndex)) return;  // Already occupied
+
+            const food = new FoodItem(x, y, foodType, zoneIndex);
+            foodItems.push(food);
+            zoneOccupied.set(zoneIndex, food);
+        }
+
+        // Initialize food in all zones at game start
+        function initFoodInZones() {
+            // Clear any existing food
+            foodItems.length = 0;
+            zoneOccupied.clear();
+
+            // Sort food spots by distance from nest (closest first)
+            const sortedSpots = foodSpots.map((spot, index) => ({
+                spot: spot,
+                index: index,
+                distance: Math.hypot(spot.x - CONFIG.nestX, spot.y - CONFIG.nestY)
+            })).sort((a, b) => a.distance - b.distance);
+
+            // Spawn food in each zone with assigned type
+            for (let i = 0; i < sortedSpots.length && i < ZONE_FOOD_TYPES.length; i++) {
+                const { spot, index } = sortedSpots[i];
+                const foodType = ZONE_FOOD_TYPES[i];
+
+                // Store the food type assignment on the spot for reference
+                spot.assignedFoodType = foodType;
+
+                const food = new FoodItem(spot.x, spot.y, foodType, index);
+                foodItems.push(food);
+                zoneOccupied.set(index, food);
+            }
         }
 
         // ===========================================
@@ -6999,63 +7099,11 @@
         let dragCurrentY = 0;
         let dragThreshold = 10; // Minimum pixels to trigger drag vs click
 
-        function activateFoodPlacement(foodType) {
-            // Clear any existing timeout
-            if (foodPlacementTimeout) {
-                clearTimeout(foodPlacementTimeout);
-            }
+        // Food placement functions removed - food auto-spawns in zones now
+        function activateFoodPlacement(foodType) { }
+        function deactivateFoodPlacement() { }
 
-            // Don't activate if this food type is on cooldown
-            if (isFoodOnCooldown(foodType)) {
-                return;
-            }
-
-            selectedFoodType = foodType;
-            foodPlacementActive = true;
-            document.querySelectorAll('.food-btn').forEach(b => b.classList.remove('active'));
-            const activeBtn = document.querySelector(`.food-btn[data-food="${foodType}"]`);
-            if (activeBtn) activeBtn.classList.add('active');
-
-            // Auto-deselect after 10 seconds if no food placed
-            foodPlacementTimeout = setTimeout(() => {
-                deactivateFoodPlacement();
-            }, 10000);
-        }
-
-        function deactivateFoodPlacement() {
-            if (foodPlacementTimeout) {
-                clearTimeout(foodPlacementTimeout);
-                foodPlacementTimeout = null;
-            }
-            foodPlacementActive = false;
-            selectedFoodType = null;
-            document.querySelectorAll('.food-btn').forEach(b => b.classList.remove('active'));
-        }
-
-        document.querySelectorAll('.food-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (btn.classList.contains('disabled')) return;
-                const foodType = btn.dataset.food;
-
-                // Don't allow selection if on cooldown
-                if (isFoodOnCooldown(foodType)) {
-                    return;
-                }
-
-                // Toggle: if same food clicked again, deactivate
-                if (selectedFoodType === foodType && foodPlacementActive) {
-                    deactivateFoodPlacement();
-                } else {
-                    activateFoodPlacement(foodType);
-                }
-            });
-            btn.addEventListener('mousedown', (e) => e.stopPropagation());
-            btn.addEventListener('touchstart', (e) => e.stopPropagation());
-        });
-
-        document.querySelector('.food-selector').addEventListener('mousedown', (e) => e.stopPropagation());
-        document.querySelector('.food-selector').addEventListener('touchstart', (e) => e.stopPropagation());
+        // Food levels panel doesn't need click handlers
 
         // ===========================================
         // CHARACTER CARD SYSTEM
@@ -7251,7 +7299,7 @@
             const stats = [
                 {
                     name: 'HP',
-                    value: `${currentHp}/${maxHp}`,
+                    value: `${Math.round(currentHp)}/${Math.round(maxHp)}`,
                     class: hpClass,
                     hpData: { current: currentHp, max: maxHp }
                 },
@@ -8165,6 +8213,9 @@
             // Sort food spots by distance and assign x1, x2, x3 multipliers
             assignFoodZoneMultipliers();
 
+            // Initialize food in all zones (auto-spawned, no manual placement)
+            initFoodInZones();
+
             // Initialize ants at the new hive location
             ants = [];
             for (let i = 0; i < CONFIG.initialAnts; i++) {
@@ -8246,13 +8297,6 @@
                 return;
             }
 
-            // If food placement is active, handle food placement mode
-            if (foodPlacementActive) {
-                isPlacing = true;
-                placeFood(e.clientX, e.clientY);
-                return;
-            }
-
             // Start potential drag selection
             isDragging = true;
             wasDragging = false;
@@ -8263,12 +8307,6 @@
         });
 
         canvas.addEventListener('mousemove', (e) => {
-            // Handle food placement drag
-            if (isPlacing && foodPlacementActive) {
-                placeFood(e.clientX, e.clientY);
-                return;
-            }
-
             // Handle selection drag
             if (isDragging) {
                 dragCurrentX = e.clientX;
@@ -8349,14 +8387,7 @@
                 return;
             }
 
-            // If food placement is active, place food
-            if (foodPlacementActive) {
-                isPlacing = true;
-                placeFood(touchX, touchY);
-                return;
-            }
-
-            // Check if touching an entity (only when not placing food)
+            // Check if touching an entity
             const entity = findClickedEntity(touchX, touchY);
             if (entity) {
                 if (entity.type === 'ant') {
@@ -8370,7 +8401,7 @@
 
         canvas.addEventListener('touchmove', (e) => {
             e.preventDefault();
-            if (isPlacing && foodPlacementActive && !characterCardOpen) placeFood(e.touches[0].clientX, e.touches[0].clientY);
+            // Food placement removed - auto-spawns now
         });
 
         canvas.addEventListener('touchend', () => isPlacing = false);
@@ -8387,31 +8418,27 @@
             lastCycleTime = Date.now();
         }
 
-        // Update cycle timer and trigger harvest when ready
-        function updateCycleTimer() {
-            if (!cycleStartTime || harvestModalOpen) return;
+        // Update cycle timer UI based on upgrade time (no longer triggers anything)
+        function updateCycleTimerUI() {
+            if (harvestModalOpen) return;
 
-            const now = Date.now();
-            const elapsed = now - cycleStartTime;
-            const remaining = Math.max(0, CYCLE_DURATION - elapsed);
-            const seconds = Math.ceil(remaining / 1000);
+            // Calculate time remaining until next upgrade/harvest
+            const elapsed = getElapsedSeconds();
+            const timeSinceLastUpgrade = elapsed - lastUpgradeTime;
+            const remaining = Math.max(0, UPGRADE_INTERVAL - timeSinceLastUpgrade);
+            const seconds = Math.ceil(remaining);
 
             // Update UI
             const countdownEl = document.getElementById('cycle-countdown');
             const barFillEl = document.getElementById('cycle-bar-fill');
             if (countdownEl) countdownEl.textContent = seconds + 's';
-            if (barFillEl) barFillEl.style.width = (remaining / CYCLE_DURATION * 100) + '%';
+            if (barFillEl) barFillEl.style.width = (remaining / UPGRADE_INTERVAL * 100) + '%';
 
             // Update preview stats
             updatePreviewStats();
 
             // Update food level displays
             updateFoodLevelDisplays();
-
-            // Check if cycle is complete
-            if (elapsed >= CYCLE_DURATION) {
-                triggerHarvestSummary();
-            }
         }
 
         // Update the preview stats display
@@ -8434,7 +8461,7 @@
                 const levelEl = document.getElementById(`${foodType}-level`);
                 if (levelEl) {
                     const level = foodLevels[foodType];
-                    levelEl.textContent = `Lv.${level}`;
+                    levelEl.textContent = level;  // Just the number
                     if (level >= 10) {
                         levelEl.classList.add('max-level');
                     } else {
@@ -8564,6 +8591,8 @@
         // Handle harvest continue button click
         document.getElementById('harvest-continue-btn')?.addEventListener('click', () => {
             spawnHarvestAnt();
+            // Now show upgrade selection after ant spawns
+            showUpgradeSelection();
         });
 
         // ===========================================
@@ -8576,11 +8605,8 @@
 
             time++;
 
-            // Check if it's time to offer upgrades
+            // Check if it's time for harvest + upgrades (combined)
             checkUpgradeTime();
-
-            // Check cycle timer for harvest/ant spawn
-            updateCycleTimer();
 
             // Check if we should spawn more predators (every minute)
             checkPredatorSpawn();
@@ -8613,35 +8639,10 @@
             checkGameOver();
         }
 
-        // Track spoiled food IDs this frame
-        let spoiledFoodIds = new Set();
-
+        // Food no longer spoils - just update food items
         function updateFoodTimers() {
-            spoiledFoodIds.clear();
-
-            // Update all food items and collect spoiled ones
-            for (let i = foodItems.length - 1; i >= 0; i--) {
-                const food = foodItems[i];
+            for (const food of foodItems) {
                 food.update();
-
-                if (food.spoiled) {
-                    spoiledFoodIds.add(food.id);
-                    foodItems.splice(i, 1);
-                }
-            }
-
-            // If any food spoiled, remove carried pieces from that food
-            if (spoiledFoodIds.size > 0) {
-                for (const ant of ants) {
-                    if (ant.carriedFoodPiece && spoiledFoodIds.has(ant.carriedFoodPiece.sourceFoodId)) {
-                        // Food went bad - drop the carried piece
-                        ant.carriedFoodPiece = null;
-                        ant.carriedFoodValue = 0;
-                        ant.targetFood = null;
-                        ant.state = 'exploring';
-                        ant.foundFoodRecently = false;
-                    }
-                }
             }
         }
 
@@ -8726,6 +8727,7 @@
             render();
             updateUI();
             updateUpgradeCountdown();
+            updateCycleTimerUI();  // Update cycle timer display based on upgrade time
             requestAnimationFrame(gameLoop);
         }
 
@@ -8784,6 +8786,30 @@
         gameLoop();
 
         window.addEventListener('resize', resize);
+
+        // Check if running on localhost - if so, hide WIP overlay and show game
+        // On public site, show WIP overlay and hide game
+        (function checkAccess() {
+            const hostname = window.location.hostname;
+            const isLocal = hostname === 'localhost' ||
+                           hostname === '127.0.0.1' ||
+                           hostname === '' ||  // file:// protocol
+                           hostname.endsWith('.local');
+
+            const wipOverlay = document.getElementById('wip-overlay');
+            const canvas = document.getElementById('canvas');
+            const uiElements = document.querySelectorAll('.ui-overlay, .upgrade-modal, .game-over-modal, .harvest-modal, .hive-placement-overlay');
+
+            if (isLocal) {
+                // On localhost - hide WIP, show game
+                wipOverlay.classList.add('hidden');
+            } else {
+                // On public site - show WIP, hide game
+                wipOverlay.classList.remove('hidden');
+                canvas.style.display = 'none';
+                uiElements.forEach(el => el.style.display = 'none');
+            }
+        })();
     </script>
 </body>
 </html>
