@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Haircut Sim | hafnr</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f5e6d3;
+            --surface: #fff;
+            --border: #e0d0c0;
+            --text: #3a3a3a;
+            --text-dim: #8a8a8a;
+            --accent: #ff6b6b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        header {
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text);
+            text-decoration: none;
+            letter-spacing: 0.05em;
+        }
+
+        .back-link {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 0.8rem;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--text);
+        }
+
+        canvas {
+            display: block;
+            cursor: crosshair;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .btn {
+            padding: 0.7rem 1.2rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: rgba(0, 0, 0, 0.03);
+            border-color: #ccc;
+            color: var(--text);
+        }
+
+        .btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .btn-reset {
+            background: rgba(255, 100, 100, 0.1);
+            border-color: rgba(255, 100, 100, 0.3);
+            color: #e55;
+        }
+
+        .btn-reset:hover {
+            background: rgba(255, 100, 100, 0.2);
+        }
+
+        .hair-color {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0 0.8rem;
+            border-left: 1px solid var(--border);
+            margin-left: 0.25rem;
+        }
+
+        .color-btn {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .color-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .color-btn.active {
+            border-color: var(--text);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="../" class="logo">HAIRCUT</a>
+        <a href="../" class="back-link">← Back to Hub</a>
+    </header>
+
+    <canvas id="canvas"></canvas>
+
+    <div class="controls">
+        <button class="btn active" id="cutMode" title="Cut hair">✂️ Cut</button>
+        <button class="btn" id="combMode" title="Comb hair">🪮 Comb</button>
+        <button class="btn" id="fanMode" title="Blow with fan">💨 Fan</button>
+        <button class="btn btn-reset" id="resetBtn" title="Grow hair back">🔄 Reset</button>
+        <div class="hair-color">
+            <div class="color-btn active" data-color="#2a1810" style="background: #2a1810" title="Black"></div>
+            <div class="color-btn" data-color="#8B4513" style="background: #8B4513" title="Brown"></div>
+            <div class="color-btn" data-color="#DAA520" style="background: #DAA520" title="Blonde"></div>
+            <div class="color-btn" data-color="#ff6b6b" style="background: #ff6b6b" title="Red"></div>
+            <div class="color-btn" data-color="#4a9eff" style="background: #4a9eff" title="Blue"></div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        let width, height;
+        let headX, headY, headRadius;
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            headX = width / 2;
+            headY = height / 2 + 30;
+            headRadius = Math.min(width, height) * 0.18;
+        }
+        resize();
+        window.addEventListener('resize', () => {
+            resize();
+            initHair();
+        });
+
+        // State
+        let mode = 'cut';
+        let hairColor = '#2a1810';
+        let hairs = [];
+        let mouseX = 0, mouseY = 0;
+        let isMouseDown = false;
+        let lastMouseX = 0, lastMouseY = 0;
+
+        // Hair strand class
+        class Hair {
+            constructor(rootX, rootY, angle, length) {
+                this.rootX = rootX;
+                this.rootY = rootY;
+                this.baseAngle = angle;
+                this.angle = angle;
+                this.length = length;
+                this.maxLength = length;
+                this.segments = 8;
+                this.points = [];
+                this.velocities = [];
+                this.cut = false;
+
+                // Initialize points along the hair
+                for (let i = 0; i <= this.segments; i++) {
+                    const t = i / this.segments;
+                    const x = this.rootX + Math.cos(this.angle) * this.length * t;
+                    const y = this.rootY + Math.sin(this.angle) * this.length * t;
+                    this.points.push({ x, y });
+                    this.velocities.push({ x: 0, y: 0 });
+                }
+            }
+
+            update(gravity, wind) {
+                // First point is fixed at root
+                this.points[0].x = this.rootX;
+                this.points[0].y = this.rootY;
+
+                const segmentLength = this.length / this.segments;
+                const stiffness = 0.3;
+                const damping = 0.85;
+
+                // Apply forces and update positions
+                for (let i = 1; i <= this.segments; i++) {
+                    const point = this.points[i];
+                    const vel = this.velocities[i];
+
+                    // Gravity
+                    vel.y += gravity * 0.3;
+
+                    // Wind
+                    vel.x += wind.x * 0.1;
+                    vel.y += wind.y * 0.05;
+
+                    // Hair wants to return to natural position
+                    const naturalX = this.rootX + Math.cos(this.baseAngle) * segmentLength * i;
+                    const naturalY = this.rootY + Math.sin(this.baseAngle) * segmentLength * i;
+                    vel.x += (naturalX - point.x) * stiffness * 0.02;
+                    vel.y += (naturalY - point.y) * stiffness * 0.02;
+
+                    // Apply velocity
+                    vel.x *= damping;
+                    vel.y *= damping;
+                    point.x += vel.x;
+                    point.y += vel.y;
+                }
+
+                // Constrain distances between points
+                for (let iter = 0; iter < 3; iter++) {
+                    for (let i = 1; i <= this.segments; i++) {
+                        const prev = this.points[i - 1];
+                        const curr = this.points[i];
+
+                        const dx = curr.x - prev.x;
+                        const dy = curr.y - prev.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+
+                        if (dist > 0) {
+                            const diff = (dist - segmentLength) / dist;
+                            curr.x -= dx * diff * 0.5;
+                            curr.y -= dy * diff * 0.5;
+                        }
+                    }
+                }
+            }
+
+            applyForce(fx, fy, px, py, radius) {
+                for (let i = 1; i <= this.segments; i++) {
+                    const point = this.points[i];
+                    const dx = point.x - px;
+                    const dy = point.y - py;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < radius) {
+                        const strength = 1 - dist / radius;
+                        this.velocities[i].x += fx * strength;
+                        this.velocities[i].y += fy * strength;
+                    }
+                }
+            }
+
+            trycut(x, y, radius) {
+                if (this.cut) return;
+
+                for (let i = 1; i <= this.segments; i++) {
+                    const point = this.points[i];
+                    const dx = point.x - x;
+                    const dy = point.y - y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < radius) {
+                        // Cut at this point
+                        const cutRatio = (i - 1) / this.segments;
+                        this.length = this.maxLength * cutRatio;
+                        this.segments = Math.max(2, Math.floor(i - 1));
+                        this.points = this.points.slice(0, this.segments + 1);
+                        this.velocities = this.velocities.slice(0, this.segments + 1);
+                        this.cut = true;
+                        return;
+                    }
+                }
+            }
+
+            draw(ctx, color) {
+                if (this.length < 5) return;
+
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(this.points[0].x, this.points[0].y);
+
+                for (let i = 1; i < this.points.length; i++) {
+                    ctx.lineTo(this.points[i].x, this.points[i].y);
+                }
+                ctx.stroke();
+            }
+        }
+
+        // Initialize hair
+        function initHair() {
+            hairs = [];
+
+            // Create hair around the top of the head
+            const hairCount = 150;
+            for (let i = 0; i < hairCount; i++) {
+                // Angle around the head (top half only)
+                const headAngle = -Math.PI + (i / hairCount) * Math.PI;
+
+                // Only top portion
+                if (headAngle > -Math.PI * 0.15 && headAngle < Math.PI * 0.15) continue;
+
+                const rootX = headX + Math.cos(headAngle) * headRadius;
+                const rootY = headY + Math.sin(headAngle) * headRadius;
+
+                // Hair grows outward from head
+                const hairAngle = headAngle + (Math.random() - 0.5) * 0.3;
+                const hairLength = 40 + Math.random() * 60;
+
+                hairs.push(new Hair(rootX, rootY, hairAngle, hairLength));
+            }
+        }
+        initHair();
+
+        // Mode buttons
+        const cutModeBtn = document.getElementById('cutMode');
+        const combModeBtn = document.getElementById('combMode');
+        const fanModeBtn = document.getElementById('fanMode');
+        const resetBtn = document.getElementById('resetBtn');
+        const colorBtns = document.querySelectorAll('.color-btn');
+
+        function setMode(newMode) {
+            mode = newMode;
+            cutModeBtn.classList.toggle('active', mode === 'cut');
+            combModeBtn.classList.toggle('active', mode === 'comb');
+            fanModeBtn.classList.toggle('active', mode === 'fan');
+
+            if (mode === 'cut') canvas.style.cursor = 'crosshair';
+            else if (mode === 'comb') canvas.style.cursor = 'grab';
+            else if (mode === 'fan') canvas.style.cursor = 'pointer';
+        }
+
+        cutModeBtn.addEventListener('click', () => setMode('cut'));
+        combModeBtn.addEventListener('click', () => setMode('comb'));
+        fanModeBtn.addEventListener('click', () => setMode('fan'));
+        resetBtn.addEventListener('click', initHair);
+
+        colorBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                colorBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                hairColor = btn.dataset.color;
+            });
+        });
+
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => {
+            isMouseDown = true;
+            lastMouseX = mouseX = e.clientX;
+            lastMouseY = mouseY = e.clientY;
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            lastMouseX = mouseX;
+            lastMouseY = mouseY;
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        canvas.addEventListener('mouseup', () => isMouseDown = false);
+        canvas.addEventListener('mouseleave', () => isMouseDown = false);
+
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isMouseDown = true;
+            lastMouseX = mouseX = e.touches[0].clientX;
+            lastMouseY = mouseY = e.touches[0].clientY;
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            lastMouseX = mouseX;
+            lastMouseY = mouseY;
+            mouseX = e.touches[0].clientX;
+            mouseY = e.touches[0].clientY;
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', () => isMouseDown = false);
+
+        // Draw head
+        function drawHead() {
+            // Shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.beginPath();
+            ctx.ellipse(headX + 5, headY + 10, headRadius, headRadius * 1.1, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Head
+            ctx.fillStyle = '#ffd5b5';
+            ctx.beginPath();
+            ctx.arc(headX, headY, headRadius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Ears
+            ctx.fillStyle = '#ffc8a8';
+            ctx.beginPath();
+            ctx.ellipse(headX - headRadius - 8, headY, 12, 18, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(headX + headRadius + 8, headY, 12, 18, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eyes
+            const eyeY = headY - headRadius * 0.1;
+            const eyeSpacing = headRadius * 0.35;
+
+            // Eye whites
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.ellipse(headX - eyeSpacing, eyeY, 15, 12, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(headX + eyeSpacing, eyeY, 15, 12, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Pupils
+            ctx.fillStyle = '#3a2a1a';
+            ctx.beginPath();
+            ctx.arc(headX - eyeSpacing + 2, eyeY, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(headX + eyeSpacing + 2, eyeY, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Nose
+            ctx.fillStyle = '#eec0a0';
+            ctx.beginPath();
+            ctx.ellipse(headX, headY + headRadius * 0.2, 8, 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Mouth
+            ctx.strokeStyle = '#c98a70';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.arc(headX, headY + headRadius * 0.35, 15, 0.2, Math.PI - 0.2);
+            ctx.stroke();
+        }
+
+        // Animation loop
+        function animate() {
+            ctx.fillStyle = '#f5e6d3';
+            ctx.fillRect(0, 0, width, height);
+
+            // Calculate wind from fan or natural
+            let wind = { x: 0, y: 0 };
+
+            if (mode === 'fan' && isMouseDown) {
+                // Fan blows away from mouse
+                const fanRadius = 150;
+                wind.x = (mouseX - lastMouseX) * 0.5;
+                wind.y = (mouseY - lastMouseY) * 0.5;
+
+                // Also add constant blow force
+                hairs.forEach(hair => {
+                    const dx = hair.rootX - mouseX;
+                    const dy = hair.rootY - mouseY;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < fanRadius && dist > 0) {
+                        const strength = (1 - dist / fanRadius) * 3;
+                        hair.applyForce(dx / dist * strength, dy / dist * strength, mouseX, mouseY, fanRadius);
+                    }
+                });
+
+                // Draw fan effect
+                ctx.strokeStyle = 'rgba(100, 180, 255, 0.3)';
+                ctx.lineWidth = 2;
+                for (let i = 0; i < 8; i++) {
+                    const angle = (Date.now() / 100 + i * Math.PI / 4) % (Math.PI * 2);
+                    ctx.beginPath();
+                    ctx.moveTo(mouseX, mouseY);
+                    ctx.lineTo(
+                        mouseX + Math.cos(angle) * 60,
+                        mouseY + Math.sin(angle) * 60
+                    );
+                    ctx.stroke();
+                }
+            }
+
+            // Comb effect
+            if (mode === 'comb' && isMouseDown) {
+                const combRadius = 40;
+                const combForceX = (mouseX - lastMouseX) * 0.8;
+                const combForceY = (mouseY - lastMouseY) * 0.8;
+
+                hairs.forEach(hair => {
+                    hair.applyForce(combForceX, combForceY, mouseX, mouseY, combRadius);
+                });
+
+                // Draw comb indicator
+                ctx.strokeStyle = 'rgba(150, 120, 90, 0.5)';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(mouseX, mouseY, combRadius, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // Cut effect
+            if (mode === 'cut' && isMouseDown) {
+                const cutRadius = 15;
+                hairs.forEach(hair => {
+                    hair.trycut(mouseX, mouseY, cutRadius);
+                });
+
+                // Draw scissors indicator
+                ctx.strokeStyle = 'rgba(200, 50, 50, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(mouseX, mouseY, cutRadius, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Scissors lines
+                ctx.beginPath();
+                ctx.moveTo(mouseX - 10, mouseY - 10);
+                ctx.lineTo(mouseX + 10, mouseY + 10);
+                ctx.moveTo(mouseX + 10, mouseY - 10);
+                ctx.lineTo(mouseX - 10, mouseY + 10);
+                ctx.stroke();
+            }
+
+            // Update and draw hair (behind head first)
+            const gravity = 0.15;
+            hairs.forEach(hair => {
+                hair.update(gravity, wind);
+            });
+
+            // Draw hair behind head
+            hairs.filter(h => h.baseAngle > -Math.PI * 0.5 && h.baseAngle < Math.PI * 0.5)
+                 .forEach(hair => hair.draw(ctx, hairColor));
+
+            // Draw head
+            drawHead();
+
+            // Draw hair in front of head
+            hairs.filter(h => h.baseAngle <= -Math.PI * 0.5 || h.baseAngle >= Math.PI * 0.5)
+                 .forEach(hair => hair.draw(ctx, hairColor));
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
