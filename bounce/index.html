@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bounce | hafnr</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --surface: #14141a;
+            --border: #2a2a35;
+            --text: #e8e8ec;
+            --text-dim: #6a6a7a;
+            --accent: #ff6b4a;
+            --accent-glow: rgba(255, 107, 74, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        header > * {
+            pointer-events: auto;
+        }
+
+        .logo {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text);
+            text-decoration: none;
+            letter-spacing: 0.05em;
+        }
+
+        .back-link {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 0.8rem;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--text);
+        }
+
+        canvas {
+            display: block;
+            cursor: crosshair;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            z-index: 100;
+        }
+
+        .btn {
+            padding: 0.6rem 1rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: var(--text);
+        }
+
+        .btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .btn-clear {
+            background: rgba(255, 80, 80, 0.1);
+            border-color: rgba(255, 80, 80, 0.3);
+            color: #ff6666;
+        }
+
+        .btn-clear:hover {
+            background: rgba(255, 80, 80, 0.2);
+        }
+
+        .size-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0 0.5rem;
+            border-left: 1px solid var(--border);
+            margin-left: 0.25rem;
+        }
+
+        .size-label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            white-space: nowrap;
+        }
+
+        .size-slider {
+            width: 80px;
+            height: 4px;
+            -webkit-appearance: none;
+            background: var(--border);
+            border-radius: 2px;
+            outline: none;
+        }
+
+        .size-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+        }
+
+        .size-slider::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            border: none;
+        }
+
+        .size-preview {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .size-preview-dot {
+            border-radius: 50%;
+            background: var(--accent);
+        }
+
+        .hint {
+            position: fixed;
+            top: 5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.6rem 1rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-dim);
+            font-size: 0.75rem;
+            z-index: 100;
+            opacity: 1;
+            transition: opacity 0.5s;
+        }
+
+        .hint.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .ball-count {
+            position: fixed;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.4rem 0.8rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-dim);
+            font-size: 0.7rem;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="../" class="logo">BOUNCE</a>
+        <a href="../" class="back-link">← Back to Hub</a>
+    </header>
+
+    <div class="ball-count" id="ballCount">0 balls</div>
+    <div class="hint" id="hint">Click and drag to draw walls. Click empty space to add more balls.</div>
+
+    <canvas id="canvas"></canvas>
+
+    <div class="controls">
+        <button class="btn active" id="drawMode" title="Draw walls">✏️ Draw</button>
+        <button class="btn" id="ballMode" title="Add balls">🔴 Ball</button>
+        <button class="btn" id="eraseMode" title="Erase walls">🧹 Erase</button>
+        <button class="btn btn-clear" id="clearBtn" title="Clear everything">Clear</button>
+        <div class="size-control">
+            <span class="size-label">Size</span>
+            <input type="range" class="size-slider" id="sizeSlider" min="8" max="60" value="20">
+            <div class="size-preview">
+                <div class="size-preview-dot" id="sizePreview"></div>
+            </div>
+        </div>
+        <div class="size-control">
+            <span class="size-label">Bounce</span>
+            <input type="range" class="size-slider" id="bounceSlider" min="0" max="100" value="50">
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const hint = document.getElementById('hint');
+        const ballCountEl = document.getElementById('ballCount');
+
+        // Resize
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        // Hide hint after 5 seconds
+        setTimeout(() => hint.classList.add('hidden'), 5000);
+
+        // State
+        let mode = 'draw'; // draw, ball, erase
+        let isDrawing = false;
+        let currentPath = [];
+        let walls = []; // Array of line segments
+        let balls = [];
+        let ballSize = 20;
+        let bounciness = 50; // 0-100
+
+        // Size slider
+        const sizeSlider = document.getElementById('sizeSlider');
+        const sizePreview = document.getElementById('sizePreview');
+        const bounceSlider = document.getElementById('bounceSlider');
+
+        function updateSizePreview() {
+            ballSize = parseInt(sizeSlider.value);
+            const displaySize = Math.min(ballSize, 22);
+            sizePreview.style.width = displaySize + 'px';
+            sizePreview.style.height = displaySize + 'px';
+        }
+        updateSizePreview();
+        sizeSlider.addEventListener('input', updateSizePreview);
+
+        function updateBounciness() {
+            bounciness = parseInt(bounceSlider.value);
+            // Update all existing balls
+            for (const ball of balls) {
+                ball.updatePhysics();
+            }
+        }
+        updateBounciness();
+        bounceSlider.addEventListener('input', updateBounciness);
+
+        // Ball class
+        class Ball {
+            constructor(x, y, radius) {
+                this.x = x;
+                this.y = y;
+                this.radius = radius || ballSize;
+                // Initial velocity scales with bounciness (more bounce = faster start)
+                const speed = (bounciness / 100) * 8;
+                const angle = Math.random() * Math.PI * 2;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.hue = Math.random() * 360;
+                this.squash = 1;
+                this.squashV = 0;
+                this.updatePhysics();
+            }
+
+            updatePhysics() {
+                // At 0 bounciness: gravity=0.4, bounce=0.5, friction=0.98
+                // At 100 bounciness: gravity=0, bounce=1.0, friction=1.0
+                const t = bounciness / 100;
+                this.gravity = 0.4 * (1 - t);
+                this.bounce = 0.5 + t * 0.5;
+                this.friction = 0.98 + t * 0.02;
+            }
+
+            update() {
+                // Gravity
+                this.vy += this.gravity;
+
+                // Apply velocity
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Friction
+                this.vx *= this.friction;
+                this.vy *= this.friction;
+
+                // Squash animation recovery
+                this.squashV += (1 - this.squash) * 0.3;
+                this.squashV *= 0.7;
+                this.squash += this.squashV;
+
+                // Wall collisions
+                if (this.x - this.radius < 0) {
+                    this.x = this.radius;
+                    this.vx *= -this.bounce;
+                    this.impact();
+                }
+                if (this.x + this.radius > canvas.width) {
+                    this.x = canvas.width - this.radius;
+                    this.vx *= -this.bounce;
+                    this.impact();
+                }
+                if (this.y - this.radius < 0) {
+                    this.y = this.radius;
+                    this.vy *= -this.bounce;
+                    this.impact();
+                }
+                if (this.y + this.radius > canvas.height) {
+                    this.y = canvas.height - this.radius;
+                    this.vy *= -this.bounce;
+                    this.impact();
+                }
+
+                // User wall collisions
+                for (const wall of walls) {
+                    this.checkWallCollision(wall);
+                }
+            }
+
+            impact() {
+                const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+                this.squash = 1 - Math.min(speed * 0.02, 0.4);
+            }
+
+            checkWallCollision(wall) {
+                // Line segment collision detection
+                const { x1, y1, x2, y2 } = wall;
+
+                // Vector from wall start to ball
+                const dx = this.x - x1;
+                const dy = this.y - y1;
+
+                // Wall vector
+                const wx = x2 - x1;
+                const wy = y2 - y1;
+                const wallLen = Math.sqrt(wx * wx + wy * wy);
+
+                if (wallLen === 0) return;
+
+                // Normalized wall vector
+                const nx = wx / wallLen;
+                const ny = wy / wallLen;
+
+                // Project ball onto wall
+                const proj = dx * nx + dy * ny;
+                const clampedProj = Math.max(0, Math.min(wallLen, proj));
+
+                // Closest point on wall
+                const closestX = x1 + nx * clampedProj;
+                const closestY = y1 + ny * clampedProj;
+
+                // Distance to closest point
+                const distX = this.x - closestX;
+                const distY = this.y - closestY;
+                const dist = Math.sqrt(distX * distX + distY * distY);
+
+                if (dist < this.radius + 3) { // 3 is wall thickness
+                    // Collision normal
+                    const normX = distX / dist;
+                    const normY = distY / dist;
+
+                    // Push ball out
+                    const overlap = this.radius + 3 - dist;
+                    this.x += normX * overlap;
+                    this.y += normY * overlap;
+
+                    // Reflect velocity
+                    const dot = this.vx * normX + this.vy * normY;
+                    this.vx -= 2 * dot * normX * this.bounce;
+                    this.vy -= 2 * dot * normY * this.bounce;
+
+                    this.impact();
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                // Calculate squash direction based on velocity
+                const angle = Math.atan2(this.vy, this.vx);
+                ctx.rotate(angle);
+                ctx.scale(1 / this.squash, this.squash);
+                ctx.rotate(-angle);
+
+                // Glow
+                const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, this.radius * 1.5);
+                gradient.addColorStop(0, `hsla(${this.hue}, 80%, 60%, 0.8)`);
+                gradient.addColorStop(0.5, `hsla(${this.hue}, 70%, 50%, 0.4)`);
+                gradient.addColorStop(1, 'transparent');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius * 1.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Main ball
+                const ballGrad = ctx.createRadialGradient(
+                    -this.radius * 0.3, -this.radius * 0.3, 0,
+                    0, 0, this.radius
+                );
+                ballGrad.addColorStop(0, `hsl(${this.hue}, 80%, 75%)`);
+                ballGrad.addColorStop(0.5, `hsl(${this.hue}, 80%, 55%)`);
+                ballGrad.addColorStop(1, `hsl(${this.hue}, 70%, 35%)`);
+
+                ctx.fillStyle = ballGrad;
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Highlight
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.beginPath();
+                ctx.arc(-this.radius * 0.3, -this.radius * 0.3, this.radius * 0.3, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        // No balls at start
+
+        // Mode buttons
+        const drawModeBtn = document.getElementById('drawMode');
+        const ballModeBtn = document.getElementById('ballMode');
+        const eraseModeBtn = document.getElementById('eraseMode');
+        const clearBtn = document.getElementById('clearBtn');
+
+        function setMode(newMode) {
+            mode = newMode;
+            drawModeBtn.classList.toggle('active', mode === 'draw');
+            ballModeBtn.classList.toggle('active', mode === 'ball');
+            eraseModeBtn.classList.toggle('active', mode === 'erase');
+            canvas.style.cursor = mode === 'erase' ? 'pointer' : 'crosshair';
+        }
+
+        drawModeBtn.addEventListener('click', () => setMode('draw'));
+        ballModeBtn.addEventListener('click', () => setMode('ball'));
+        eraseModeBtn.addEventListener('click', () => setMode('erase'));
+        clearBtn.addEventListener('click', () => {
+            walls = [];
+            balls = [];
+            updateBallCount();
+        });
+
+        // Drawing
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            if (e.touches) {
+                return {
+                    x: e.touches[0].clientX - rect.left,
+                    y: e.touches[0].clientY - rect.top
+                };
+            }
+            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        }
+
+        function startDraw(e) {
+            e.preventDefault();
+            const pos = getPos(e);
+
+            if (mode === 'ball') {
+                balls.push(new Ball(pos.x, pos.y, ballSize));
+                updateBallCount();
+                return;
+            }
+
+            if (mode === 'erase') {
+                eraseAt(pos.x, pos.y);
+                return;
+            }
+
+            isDrawing = true;
+            currentPath = [pos];
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            const pos = getPos(e);
+
+            if (currentPath.length > 0) {
+                const last = currentPath[currentPath.length - 1];
+                const dist = Math.sqrt((pos.x - last.x) ** 2 + (pos.y - last.y) ** 2);
+
+                if (dist > 10) {
+                    // Add wall segment
+                    walls.push({
+                        x1: last.x,
+                        y1: last.y,
+                        x2: pos.x,
+                        y2: pos.y
+                    });
+                    currentPath.push(pos);
+                }
+            }
+        }
+
+        function endDraw() {
+            isDrawing = false;
+            currentPath = [];
+        }
+
+        function eraseAt(x, y) {
+            const eraseRadius = 30;
+            walls = walls.filter(wall => {
+                // Check distance to line segment
+                const midX = (wall.x1 + wall.x2) / 2;
+                const midY = (wall.y1 + wall.y2) / 2;
+                const dist = Math.sqrt((x - midX) ** 2 + (y - midY) ** 2);
+                return dist > eraseRadius;
+            });
+        }
+
+        function updateBallCount() {
+            const count = balls.length;
+            ballCountEl.textContent = count === 1 ? '1 ball' : `${count} balls`;
+        }
+
+        // Event listeners
+        canvas.addEventListener('mousedown', startDraw);
+        canvas.addEventListener('mousemove', (e) => {
+            if (mode === 'erase' && e.buttons === 1) {
+                const pos = getPos(e);
+                eraseAt(pos.x, pos.y);
+            } else {
+                draw(e);
+            }
+        });
+        canvas.addEventListener('mouseup', endDraw);
+        canvas.addEventListener('mouseleave', endDraw);
+
+        canvas.addEventListener('touchstart', startDraw, { passive: false });
+        canvas.addEventListener('touchmove', (e) => {
+            if (mode === 'erase') {
+                const pos = getPos(e);
+                eraseAt(pos.x, pos.y);
+            } else {
+                draw(e);
+            }
+        }, { passive: false });
+        canvas.addEventListener('touchend', endDraw);
+
+        // Animation loop
+        function animate() {
+            // Clear with fade
+            ctx.fillStyle = 'rgba(10, 10, 15, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw walls
+            ctx.strokeStyle = '#4a9eff';
+            ctx.lineWidth = 6;
+            ctx.lineCap = 'round';
+            ctx.shadowColor = 'rgba(74, 158, 255, 0.5)';
+            ctx.shadowBlur = 10;
+
+            for (const wall of walls) {
+                ctx.beginPath();
+                ctx.moveTo(wall.x1, wall.y1);
+                ctx.lineTo(wall.x2, wall.y2);
+                ctx.stroke();
+            }
+
+            ctx.shadowBlur = 0;
+
+            // Draw current path
+            if (isDrawing && currentPath.length > 0) {
+                ctx.strokeStyle = 'rgba(74, 158, 255, 0.5)';
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.moveTo(currentPath[0].x, currentPath[0].y);
+                for (let i = 1; i < currentPath.length; i++) {
+                    ctx.lineTo(currentPath[i].x, currentPath[i].y);
+                }
+                ctx.stroke();
+            }
+
+            // Update balls
+            for (const ball of balls) {
+                ball.update();
+            }
+
+            // Ball-to-ball collisions
+            for (let i = 0; i < balls.length; i++) {
+                for (let j = i + 1; j < balls.length; j++) {
+                    const a = balls[i];
+                    const b = balls[j];
+
+                    const dx = b.x - a.x;
+                    const dy = b.y - a.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const minDist = a.radius + b.radius;
+
+                    if (dist < minDist && dist > 0) {
+                        // Collision normal
+                        const nx = dx / dist;
+                        const ny = dy / dist;
+
+                        // Push balls apart
+                        const overlap = (minDist - dist) / 2;
+                        a.x -= nx * overlap;
+                        a.y -= ny * overlap;
+                        b.x += nx * overlap;
+                        b.y += ny * overlap;
+
+                        // Relative velocity
+                        const dvx = a.vx - b.vx;
+                        const dvy = a.vy - b.vy;
+                        const dvn = dvx * nx + dvy * ny;
+
+                        // Only resolve if balls are approaching
+                        if (dvn > 0) {
+                            // Mass ratio (based on radius)
+                            const massA = a.radius * a.radius;
+                            const massB = b.radius * b.radius;
+                            const totalMass = massA + massB;
+
+                            // Impulse
+                            const impulse = dvn * (a.bounce + b.bounce) / 2;
+
+                            a.vx -= (impulse * massB / totalMass) * nx;
+                            a.vy -= (impulse * massB / totalMass) * ny;
+                            b.vx += (impulse * massA / totalMass) * nx;
+                            b.vy += (impulse * massA / totalMass) * ny;
+
+                            a.impact();
+                            b.impact();
+                        }
+                    }
+                }
+            }
+
+            // Draw balls
+            for (const ball of balls) {
+                ball.draw();
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
