@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Project Overview
+
+**hafnr** is a personal portfolio of browser-based games, tools, and interactive experiments. The site serves as a collection of fun, lightweight web applications—ranging from simulations and productivity tools to casual mini-games. All projects are built with vanilla HTML, CSS, and JavaScript with no frameworks, emphasizing simplicity and instant playability directly in the browser.
+
 ## Development Commands
 
 ```bash
