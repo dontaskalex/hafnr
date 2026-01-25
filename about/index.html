@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About | hafnr</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7723236991764317"
+        crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #09090b;
+            --surface: #111113;
+            --border: #1e1e21;
+            --text: #e4e4e7;
+            --text-muted: #71717a;
+        }
+
+        body {
+            background: var(--bg);
+            min-height: 100vh;
+            font-family: 'IBM Plex Sans', system-ui, sans-serif;
+            color: var(--text);
+            padding: 24px 16px;
+            line-height: 1.7;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 32px;
+        }
+
+        .back-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+
+        .back-link:hover {
+            color: var(--text);
+        }
+
+        h1 {
+            font-family: 'Space Mono', monospace;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        h2 {
+            font-size: 18px;
+            font-weight: 500;
+            margin-top: 32px;
+            margin-bottom: 12px;
+        }
+
+        p {
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            font-size: 15px;
+        }
+
+        a {
+            color: var(--text);
+        }
+
+        .contact-link {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 10px 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            text-decoration: none;
+            font-size: 14px;
+            transition: border-color 0.15s ease;
+        }
+
+        .contact-link:hover {
+            border-color: var(--text-muted);
+        }
+
+        @media (min-width: 520px) {
+            body {
+                padding: 48px 32px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="/" class="back-link">&larr; Back to hafnr</a>
+            <h1>About</h1>
+        </header>
+
+        <main>
+            <p>hafnr is a collection of browser-based games, tools, and interactive experiments. Everything here is built with vanilla HTML, CSS, and JavaScript—no frameworks, no dependencies, just simple code that runs instantly in your browser.</p>
+
+            <h2>What you'll find here</h2>
+            <p>A mix of things: productivity tools like timers and speed readers, casual games you can play with friends, simulations to tinker with, and small experiments that were fun to build. Each project is self-contained and works offline once loaded.</p>
+
+            <h2>Why it exists</h2>
+            <p>Some projects started as solutions to small problems. Others were just ideas that seemed interesting to explore. The goal is to make useful or entertaining things that work well and load fast.</p>
+
+            <h2>Get in touch</h2>
+            <p>Have feedback, found a bug, or just want to say hi?</p>
+            <a href="mailto:dntaskalex@gmail.com" class="contact-link">dntaskalex@gmail.com</a>
+        </main>
+    </div>
+</body>
+</html>
