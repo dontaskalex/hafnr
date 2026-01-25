@@ -314,7 +314,7 @@
     #dreamCanvas {
       display: block;
       width: 100%;
-      height: 320px;
+      aspect-ratio: 1;
       cursor: crosshair;
       touch-action: none;
     }
@@ -912,6 +912,34 @@
       transform: translateX(-50%) translateY(0);
     }
 
+    /* Storage info */
+    .storage-info {
+      margin-top: 1.5rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+
+    .storage-info:hover {
+      opacity: 1;
+    }
+
+    .storage-info-icon {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      line-height: 14px;
+      font-size: 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      margin-right: 0.35rem;
+      vertical-align: middle;
+      position: relative;
+      top: -1px;
+    }
+
     /* Responsive */
     @media (max-width: 600px) {
       .container {
@@ -941,9 +969,6 @@
         height: 22px;
       }
 
-      #dreamCanvas {
-        height: 260px;
-      }
 
       .nav-tab {
         padding: 0.6rem 1rem;
@@ -1058,6 +1083,11 @@
         </div>
       </div>
     </main>
+
+    <p class="storage-info">
+      <span class="storage-info-icon">i</span>
+      Dreams are saved locally in your browser. Clearing site data will erase them.
+    </p>
   </div>
 
   <!-- Dream Detail Modal -->
@@ -1463,12 +1493,44 @@
       localStorage.setItem('dreamDiary', JSON.stringify(dreams));
     }
 
+    // Compress and resize image for efficient storage
+    function compressImage(sourceCanvas, maxWidth = 400, quality = 0.8) {
+      const sourceWidth = sourceCanvas.width;
+      const sourceHeight = sourceCanvas.height;
+
+      // Calculate new dimensions maintaining aspect ratio
+      let targetWidth = sourceWidth;
+      let targetHeight = sourceHeight;
+
+      if (sourceWidth > maxWidth) {
+        const ratio = maxWidth / sourceWidth;
+        targetWidth = maxWidth;
+        targetHeight = Math.round(sourceHeight * ratio);
+      }
+
+      // Create a temporary canvas for resizing
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = targetWidth;
+      tempCanvas.height = targetHeight;
+      const tempCtx = tempCanvas.getContext('2d');
+
+      // Use better image smoothing for resize
+      tempCtx.imageSmoothingEnabled = true;
+      tempCtx.imageSmoothingQuality = 'high';
+
+      // Draw resized image
+      tempCtx.drawImage(sourceCanvas, 0, 0, targetWidth, targetHeight);
+
+      // WebP handles line art much better than JPEG
+      return tempCanvas.toDataURL('image/webp', quality);
+    }
+
     function saveDream() {
       const title = document.getElementById('dreamTitle').value.trim() || 'Untitled Dream';
       const text = document.getElementById('dreamText').value.trim();
       const dateInput = document.getElementById('dreamDate').value;
       const lucid = document.getElementById('lucidToggle').checked;
-      const image = canvas.toDataURL('image/png');
+      const image = compressImage(canvas);
 
       if (!text) {
         showToast('Please describe your dream first');
