@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-D19M0488B7"></script>
+    <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-D19M0488B7');</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song of the Day | hafnr</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230f0f0f'/><text x='4' y='26' font-family='Arial' font-size='26' font-weight='bold' fill='%23fff'>h</text><circle cx='26' cy='24' r='3' fill='%23fff'/></svg>">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7723236991764317"
+        crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #09090b;
+            --surface: #111113;
+            --border: #1e1e21;
+            --border-hover: #2a2a2e;
+            --text: #e4e4e7;
+            --text-muted: #71717a;
+            --text-dim: #52525b;
+            --accent: #1DB954;
+        }
+
+        body {
+            background: var(--bg);
+            min-height: 100vh;
+            font-family: 'IBM Plex Sans', system-ui, sans-serif;
+            color: var(--text);
+            padding: 24px 16px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 48px;
+        }
+
+        .logo {
+            font-family: 'Space Mono', monospace;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .back-link {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.15s ease;
+        }
+
+        .back-link:hover {
+            color: var(--text-muted);
+        }
+
+        .song-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .day-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--border);
+            border-radius: 20px;
+            font-size: 11px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+
+        .song-title {
+            font-size: 22px;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        .song-artist {
+            color: var(--text-muted);
+            font-size: 15px;
+            margin-bottom: 24px;
+        }
+
+        .spotify-embed {
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .spotify-embed iframe {
+            display: block;
+        }
+
+        .footer-note {
+            margin-top: 32px;
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 12px;
+        }
+
+        /* Debug mode styles */
+        .debug-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .debug-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .debug-title {
+            font-family: 'Space Mono', monospace;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .debug-stats {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .debug-filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .debug-filter {
+            padding: 6px 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-muted);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .debug-filter:hover, .debug-filter.active {
+            border-color: var(--border-hover);
+            color: var(--text);
+        }
+
+        .debug-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .debug-song {
+            display: grid;
+            grid-template-columns: 70px 1fr 120px 60px;
+            gap: 12px;
+            align-items: center;
+            padding: 10px 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .debug-song:hover {
+            border-color: var(--border-hover);
+            background: #141416;
+        }
+
+        .debug-song.today {
+            border-color: #1DB954;
+            background: rgba(29, 185, 84, 0.1);
+        }
+
+        .debug-date {
+            color: var(--text-dim);
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+        }
+
+        .debug-info {
+            overflow: hidden;
+        }
+
+        .debug-song-title {
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .debug-artist {
+            color: var(--text-muted);
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .debug-id {
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            color: var(--text-dim);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .debug-test {
+            padding: 4px 8px;
+            background: var(--border);
+            border: none;
+            border-radius: 4px;
+            color: var(--text-muted);
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .debug-test:hover {
+            background: var(--border-hover);
+            color: var(--text);
+        }
+
+        .debug-preview {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 320px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            z-index: 100;
+        }
+
+        .debug-preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .debug-preview-title {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .debug-preview-close {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .debug-preview-close:hover {
+            color: var(--text);
+        }
+
+        .debug-edit-form {
+            display: none;
+            grid-column: 1 / -1;
+            padding: 12px;
+            background: var(--bg);
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+
+        .debug-song.editing .debug-edit-form {
+            display: block;
+        }
+
+        .debug-edit-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .debug-edit-field {
+            flex: 1;
+        }
+
+        .debug-edit-field label {
+            display: block;
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .debug-edit-field input {
+            width: 100%;
+            padding: 8px 10px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 13px;
+            font-family: inherit;
+        }
+
+        .debug-edit-field input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .debug-edit-field.spotify-id input {
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+        }
+
+        .debug-edit-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .debug-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .debug-btn-test {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .debug-btn-test:hover {
+            background: #1ed760;
+        }
+
+        .debug-btn-copy {
+            background: var(--border);
+            color: var(--text);
+        }
+
+        .debug-btn-copy:hover {
+            background: var(--border-hover);
+        }
+
+        .debug-btn-copy.copied {
+            background: #22c55e;
+            color: #000;
+        }
+
+        @media (max-width: 600px) {
+            .debug-song {
+                grid-template-columns: 60px 1fr 50px;
+            }
+            .debug-id {
+                display: none;
+            }
+        }
+
+        @media (min-width: 520px) {
+            body {
+                padding: 48px 24px;
+            }
+
+            .song-card {
+                padding: 32px;
+            }
+
+            .song-title {
+                font-size: 26px;
+            }
+
+            .song-artist {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="../" class="logo">Song of the Day</a>
+            <a href="../" class="back-link">← Back to Hub</a>
+        </header>
+
+        <div class="song-card">
+            <div class="day-badge" id="day-badge">Loading...</div>
+            <h1 class="song-title" id="song-title">Loading...</h1>
+            <p class="song-artist" id="song-artist"></p>
+            <div class="spotify-embed" id="spotify-embed"></div>
+        </div>
+
+        <p class="footer-note">A new song every day. Come back tomorrow!</p>
+    </div>
+
+    <script>
+        // Songs mapped by date (MM-DD format) - works every year!
+        // Get spotifyId from any Spotify track URL: open.spotify.com/track/[THIS_PART]
+        const songs = {
+            // JANUARY
+            "01-01": { title: "Here Comes the Sun", artist: "The Beatles", spotifyId: "6dGnYIeXmHdcikdzNNDMm2" },
+            "01-02": { title: "Dancing Queen", artist: "ABBA", spotifyId: "0GjEhVFGZW8afUYGChu3Rr" },
+            "01-03": { title: "Superstition", artist: "Stevie Wonder", spotifyId: "1h2xVEoJORqrg71HocgqXd" },
+            "01-04": { title: "Blinding Lights", artist: "The Weeknd", spotifyId: "0VjIjW4GlUZAMYd2vXMi3b" },
+            "01-05": { title: "Bohemian Rhapsody", artist: "Queen", spotifyId: "7tFiyTwD0nx5a1eklYtX2J" },
+            "01-06": { title: "Billie Jean", artist: "Michael Jackson", spotifyId: "5ChkMS8OtdzJeqyybCc9R5" },
+            "01-07": { title: "Sweet Child O' Mine", artist: "Guns N' Roses", spotifyId: "7o2CTH4ctstm8TNelqjb51" },
+            "01-08": { title: "Smells Like Teen Spirit", artist: "Nirvana", spotifyId: "5ghIJDpPoe3CfHMGu71E6T" },
+            "01-09": { title: "Hotel California", artist: "Eagles", spotifyId: "40riOy7x9W7GXjyGp4pjAv" },
+            "01-10": { title: "Stairway to Heaven", artist: "Led Zeppelin", spotifyId: "5CQ30WqJwcep0pYcV4AMNc" },
+            "01-11": { title: "Imagine", artist: "John Lennon", spotifyId: "7pKfPomDEeI4TPT6EOYjn9" },
+            "01-12": { title: "Purple Rain", artist: "Prince", spotifyId: "1uvyZBs4IZYRebHIB1747m" },
+            "01-13": { title: "Like a Rolling Stone", artist: "Bob Dylan", spotifyId: "3AhXZa8sUQht0UEdBJgpGc" },
+            "01-14": { title: "What's Going On", artist: "Marvin Gaye", spotifyId: "2dleF64m6FfqvA4e7Mtk37" },
+            "01-15": { title: "Respect", artist: "Aretha Franklin", spotifyId: "7s25THrKz86DM225dOYwnr" },
+            "01-16": { title: "Born to Run", artist: "Bruce Springsteen", spotifyId: "6hTcuIQa0sxrrByu9wTD7s" },
+            "01-17": { title: "Good Vibrations", artist: "The Beach Boys", spotifyId: "5t9KYe0Fhd5cW6UYT4qP8f" },
+            "01-18": { title: "Johnny B. Goode", artist: "Chuck Berry", spotifyId: "5JLv62qFIS1DR3zGEcApRt" },
+            "01-19": { title: "Hey Jude", artist: "The Beatles", spotifyId: "0aym2LBJBk9DAYuHHutrIl" },
+            "01-20": { title: "Waterloo Sunset", artist: "The Kinks", spotifyId: "1FZmKlwvIycuSiwuE0bQFU" },
+            "01-21": { title: "London Calling", artist: "The Clash", spotifyId: "6Vc5wAMmXdKIAM7WUoEb7N" },
+            "01-22": { title: "I Want to Hold Your Hand", artist: "The Beatles", spotifyId: "4jDmJ51x1o9NZB5Nxxc7gY" },
+            "01-23": { title: "Light My Fire", artist: "The Doors", spotifyId: "5uvosCdMlFdTXhoazkTI5R" },
+            "01-24": { title: "A Day in the Life", artist: "The Beatles", spotifyId: "0hKRSZhUGEhKU6aNSPBACZ" },
+            "01-25": { title: "God Only Knows", artist: "The Beach Boys", spotifyId: "2AOxbMh3L0rHPVoUFvGBaX" },
+            "01-26": { title: "Blinding Lights", artist: "The Weeknd", spotifyId: "0VjIjW4GlUZAMYd2vXMi3b" },
+            "01-27": { title: "One", artist: "U2", spotifyId: "2FPfYs5FhOXwlkF9ciHHks" },
+            "01-28": { title: "Thriller", artist: "Michael Jackson", spotifyId: "3S2R0EVwBSAVMd5UMgKTL0" },
+            "01-29": { title: "Watermelon Sugar", artist: "Harry Styles", spotifyId: "6UelLqGlWMcVH1E5c4H7lY" },
+            "01-30": { title: "Levitating", artist: "Dua Lipa", spotifyId: "39LLxExYz6ewLAcYrzQQyP" },
+            "01-31": { title: "drivers license", artist: "Olivia Rodrigo", spotifyId: "7lPN2DXiMsVn7XUKtOW1CS" },
+
+            // FEBRUARY
+            "02-01": { title: "bad guy", artist: "Billie Eilish", spotifyId: "2Fxmhks0bxGSBdJ92vM42m" },
+            "02-02": { title: "Uptown Funk", artist: "Mark Ronson ft. Bruno Mars", spotifyId: "32OlwWuMpZ6b0aN2RZOeMS" },
+            "02-03": { title: "Shape of You", artist: "Ed Sheeran", spotifyId: "7qiZfU4dY1lWllzX7mPBI3" },
+            "02-04": { title: "Rolling in the Deep", artist: "Adele", spotifyId: "6IAZHEBUIGJ6NJKxxOBIEr" },
+            "02-05": { title: "Happy", artist: "Pharrell Williams", spotifyId: "60nZcImufyMA1MKQY3dcCH" },
+            "02-06": { title: "Get Lucky", artist: "Daft Punk", spotifyId: "69kOkLUCkxIZYexIgSG8rq" },
+            "02-07": { title: "Somebody That I Used to Know", artist: "Gotye", spotifyId: "4wCmqSrbyCgxEXROQE6vtV" },
+            "02-08": { title: "Call Me Maybe", artist: "Carly Rae Jepsen", spotifyId: "20I6sIOMTCkB6w7ryavxtO" },
+            "02-09": { title: "Royals", artist: "Lorde", spotifyId: "2dLLR6qlu5UJ5gk0dKz0h3" },
+            "02-10": { title: "Take Me to Church", artist: "Hozier", spotifyId: "1CS7Sd1u5tWkstBhpssyjP" },
+            "02-11": { title: "Thinking Out Loud", artist: "Ed Sheeran", spotifyId: "34gCuhDGsG4bRPIf9bb02f" },
+            "02-12": { title: "All of Me", artist: "John Legend", spotifyId: "3U4isOIWM3VvDubwSI3y7a" },
+            "02-13": { title: "Stay With Me", artist: "Sam Smith", spotifyId: "5Nm9ERjJZ5oyfXZTECKmRt" },
+            "02-14": { title: "Crazy in Love", artist: "Beyoncé ft. JAY-Z", spotifyId: "5IVuqXILoxVWvWEPm82Jxr" },
+            "02-15": { title: "Single Ladies", artist: "Beyoncé", spotifyId: "5R5HVzIT05pkUeNhCQ1EtW" },
+            "02-16": { title: "Halo", artist: "Beyoncé", spotifyId: "4JehYebiI9JE8sR8MisGVb" },
+            "02-17": { title: "Umbrella", artist: "Rihanna", spotifyId: "1Vb6gVCLYIM8XNLfWtSlVj" },
+            "02-18": { title: "We Found Love", artist: "Rihanna", spotifyId: "6qn9YLKt13AGvpq9jfO8py" },
+            "02-19": { title: "Diamonds", artist: "Rihanna", spotifyId: "0nJW01T7XtvILxQgC5J7Wh" },
+            "02-20": { title: "Poker Face", artist: "Lady Gaga", spotifyId: "5R8dQOPq8haW1v7bkFZpoj" },
+            "02-21": { title: "Bad Romance", artist: "Lady Gaga", spotifyId: "0SiywuOBRcynK0uKGWdCnn" },
+            "02-22": { title: "Born This Way", artist: "Lady Gaga", spotifyId: "2uqYupMHANxnwgeiXTZXzd" },
+            "02-23": { title: "Firework", artist: "Katy Perry", spotifyId: "4lCRBEjFLHFySR0cCjcxNk" },
+            "02-24": { title: "Roar", artist: "Katy Perry", spotifyId: "2XU0oxnq2qxCpomAAuJY8K" },
+            "02-25": { title: "Teenage Dream", artist: "Katy Perry", spotifyId: "55qBw1900wIOnMNe0EgUeB" },
+            "02-26": { title: "Shake It Off", artist: "Taylor Swift", spotifyId: "0cqRj7pUJDkTCEsJkx8snD" },
+            "02-27": { title: "Blank Space", artist: "Taylor Swift", spotifyId: "1p80LdxRV74UKvL8gnD7ky" },
+            "02-28": { title: "Love Story", artist: "Taylor Swift", spotifyId: "1D4PL9B8gOg78jiHg3FvBb" },
+            "02-29": { title: "Anti-Hero", artist: "Taylor Swift", spotifyId: "0V3wPSX9ygBnCm8psDIegu" },
+
+            // MARCH
+            "03-01": { title: "Mr. Brightside", artist: "The Killers", spotifyId: "003vvx7Niy0yvhvHt4a68B" },
+            "03-02": { title: "Take On Me", artist: "a-ha", spotifyId: "2WfaOiMkCvy7F5fcp2zZ8L" },
+            "03-03": { title: "Don't Stop Believin'", artist: "Journey", spotifyId: "77NNZQSqzLNqh2A9JhLRkg" },
+            "03-04": { title: "Livin' on a Prayer", artist: "Bon Jovi", spotifyId: "37ZJ0p5Jm13JPevGcx4SkF" },
+            "03-05": { title: "Sweet Home Alabama", artist: "Lynyrd Skynyrd", spotifyId: "7e89621JPkKaeDSTQ3avtg" },
+            "03-06": { title: "Free Bird", artist: "Lynyrd Skynyrd", spotifyId: "0OBwxFYn0BLuY7lJplbGFN" },
+            "03-07": { title: "Eye of the Tiger", artist: "Survivor", spotifyId: "2KH16WveTQWT6KOG9Rg6e2" },
+            "03-08": { title: "Africa", artist: "Toto", spotifyId: "2374M0fQpWi3dLnB54qaLX" },
+            "03-09": { title: "Every Breath You Take", artist: "The Police", spotifyId: "1JSTJqkT5qHq8MDJnJbRE1" },
+            "03-10": { title: "With or Without You", artist: "U2", spotifyId: "6ADSaE87h8Y3lccZlBJdXH" },
+            "03-11": { title: "Where the Streets Have No Name", artist: "U2", spotifyId: "0RGfqERAGrFAuZ0Zvnl5Sj" },
+            "03-12": { title: "Under Pressure", artist: "Queen & David Bowie", spotifyId: "2fuCquhmrzHpu5xcA1ci9x" },
+            "03-13": { title: "Another One Bites the Dust", artist: "Queen", spotifyId: "5vdp5UmvTsnMEMESIF2Ym7" },
+            "03-14": { title: "We Will Rock You", artist: "Queen", spotifyId: "54flyrjcdnQdco2300avMJ" },
+            "03-15": { title: "We Are the Champions", artist: "Queen", spotifyId: "7ccI9cStQbQdystvc6TvxD" },
+            "03-16": { title: "I Want to Break Free", artist: "Queen", spotifyId: "6Kv2GmsDrNP81HYKC9KPBo" },
+            "03-17": { title: "Galway Girl", artist: "Ed Sheeran", spotifyId: "0NNg9F2xOCLD3edBiPKFe9" },
+            "03-18": { title: "Come On Eileen", artist: "Dexys Midnight Runners", spotifyId: "2aGlLDaQ7LIVvia6OLasfa" },
+            "03-19": { title: "Wake Me Up Before You Go-Go", artist: "Wham!", spotifyId: "0ikz6tENMONtK6qGkOrU3c" },
+            "03-20": { title: "Girls Just Want to Have Fun", artist: "Cyndi Lauper", spotifyId: "4y1LsJpmMti1PfRQV9AWWe" },
+            "03-21": { title: "Time After Time", artist: "Cyndi Lauper", spotifyId: "2fKLFiWOSTjJrUcBybX2Wn" },
+            "03-22": { title: "Like a Virgin", artist: "Madonna", spotifyId: "1ZPlNanZsJSPK5h9YZZFbZ" },
+            "03-23": { title: "Material Girl", artist: "Madonna", spotifyId: "7dgurWQJU2dBME6GCuBMPN" },
+            "03-24": { title: "Vogue", artist: "Madonna", spotifyId: "4sFbojvAPGWBDT5sIa3j8e" },
+            "03-25": { title: "Like a Prayer", artist: "Madonna", spotifyId: "1z3ugFmUKoCzGsI6jdY4Ci" },
+            "03-26": { title: "Express Yourself", artist: "Madonna", spotifyId: "59R7SHfrNnNYLMkH8jBRma" },
+            "03-27": { title: "Hung Up", artist: "Madonna", spotifyId: "4SJ90CcF6jjDeHzmKaDpDY" },
+            "03-28": { title: "Into the Groove", artist: "Madonna", spotifyId: "4QQpLG1fkANgNhjKp1eUGn" },
+            "03-29": { title: "Papa Don't Preach", artist: "Madonna", spotifyId: "3y6FvlIzKOJl2G8sERZ5oA" },
+            "03-30": { title: "La Isla Bonita", artist: "Madonna", spotifyId: "3cE0FgaAAjuGu2i2F9f9RZ" },
+            "03-31": { title: "Borderline", artist: "Madonna", spotifyId: "0I3q5w9URroyt7MgVepkWY" },
+
+            // APRIL
+            "04-01": { title: "Never Gonna Give You Up", artist: "Rick Astley", spotifyId: "4PTG3Z6ehGkBFwjybzWkR8" },
+            "04-02": { title: "Everybody Wants to Rule the World", artist: "Tears for Fears", spotifyId: "4RvWPyQ5RL0ao9LPZeSouE" },
+            "04-03": { title: "Shout", artist: "Tears for Fears", spotifyId: "5BL74PjL3rRdzGaTFydQa0" },
+            "04-04": { title: "Head Over Heels", artist: "Tears for Fears", spotifyId: "5kfNNB4LfFpqb0hxJs7Kqk" },
+            "04-05": { title: "Enjoy the Silence", artist: "Depeche Mode", spotifyId: "1HkMTmLHFpBjJ7FIAdlOVu" },
+            "04-06": { title: "Personal Jesus", artist: "Depeche Mode", spotifyId: "18RS4P1afSOYlNvIMsccEj" },
+            "04-07": { title: "Just Can't Get Enough", artist: "Depeche Mode", spotifyId: "4aHMfKc6HXRH9PV0IQPB8r" },
+            "04-08": { title: "Blue Monday", artist: "New Order", spotifyId: "7uyYJ7zLhVfdjdqTYI2BuF" },
+            "04-09": { title: "Bizarre Love Triangle", artist: "New Order", spotifyId: "7xPhfUan2yNtyFG0cUWkt8" },
+            "04-10": { title: "True Faith", artist: "New Order", spotifyId: "1UHGJvDgRNHKPlyyyojZQD" },
+            "04-11": { title: "Love Will Tear Us Apart", artist: "Joy Division", spotifyId: "3BgJjceogx5MQrBISE7M3U" },
+            "04-12": { title: "She Sells Sanctuary", artist: "The Cult", spotifyId: "72IcJoP8FBIJJXQp1bzWXH" },
+            "04-13": { title: "Just Like Heaven", artist: "The Cure", spotifyId: "1hXF8EzRoKEX7AlgJptLZv" },
+            "04-14": { title: "Friday I'm in Love", artist: "The Cure", spotifyId: "4DOcEJEmOdOhiKWxE3ljM7" },
+            "04-15": { title: "Lovesong", artist: "The Cure", spotifyId: "4fmZMfhpRrNgSCkIHmJxjw" },
+            "04-16": { title: "Boys Don't Cry", artist: "The Cure", spotifyId: "08JduhJL7PNMxPrNqpTwdS" },
+            "04-17": { title: "Close to Me", artist: "The Cure", spotifyId: "2qSdUHzi8kp36r3HDEGF5F" },
+            "04-18": { title: "Pictures of You", artist: "The Cure", spotifyId: "32CsqdHNJy1UbMGMBJjrY4" },
+            "04-19": { title: "In Between Days", artist: "The Cure", spotifyId: "5VCqvyTJsXjEfXKzp04l3c" },
+            "04-20": { title: "Creep", artist: "Radiohead", spotifyId: "70LcF31zb1H0PyJoS1Sx1r" },
+            "04-21": { title: "Karma Police", artist: "Radiohead", spotifyId: "63OQupATfueTdZMWTxW03A" },
+            "04-22": { title: "No Surprises", artist: "Radiohead", spotifyId: "10nyNJ6zNy2YVYLrcwLccB" },
+            "04-23": { title: "Fake Plastic Trees", artist: "Radiohead", spotifyId: "73CKjW3vsUXRpy3NnX4H7F" },
+            "04-24": { title: "High and Dry", artist: "Radiohead", spotifyId: "0bT3GnMR6A0YyAEAtoeTGm" },
+            "04-25": { title: "Street Spirit (Fade Out)", artist: "Radiohead", spotifyId: "5GGoNn4Q5XvXPd9xOV7mhd" },
+            "04-26": { title: "Paranoid Android", artist: "Radiohead", spotifyId: "6LgJvl0Xdtc73RJ1mmpotq" },
+            "04-27": { title: "Everything in Its Right Place", artist: "Radiohead", spotifyId: "2kSYIH8pjnwLzlPUANPjbW" },
+            "04-28": { title: "Idioteque", artist: "Radiohead", spotifyId: "2kpT7m8HYBfQNKMISGlFfO" },
+            "04-29": { title: "Lucky", artist: "Radiohead", spotifyId: "59hv5fdv0Ga2mwrGQ4gXc5" },
+            "04-30": { title: "Exit Music (For a Film)", artist: "Radiohead", spotifyId: "0z7GpFZU0mMALxIjKJT5kU" },
+
+            // MAY
+            "05-01": { title: "Wonderwall", artist: "Oasis", spotifyId: "1qPbGZqppFwLwcBC1JQ6Vr" },
+            "05-02": { title: "Don't Look Back in Anger", artist: "Oasis", spotifyId: "6pMbzH3JZDW2gxWpLLMYTF" },
+            "05-03": { title: "Champagne Supernova", artist: "Oasis", spotifyId: "4FKhpVsgrfxykMqT9vQlOb" },
+            "05-04": { title: "Live Forever", artist: "Oasis", spotifyId: "0VPs0FThZR41a7z5Bxlf5h" },
+            "05-05": { title: "Supersonic", artist: "Oasis", spotifyId: "6snS4Ebd0pqYhUQb6xnBsx" },
+            "05-06": { title: "Stop Crying Your Heart Out", artist: "Oasis", spotifyId: "0z0EFPzK1NUb4uMzVGiw1b" },
+            "05-07": { title: "Slide Away", artist: "Oasis", spotifyId: "6lAB0w56Jqa6WHSd61EZeM" },
+            "05-08": { title: "Half the World Away", artist: "Oasis", spotifyId: "3DpSc5DhLXmJAyQtlHykCJ" },
+            "05-09": { title: "Bitter Sweet Symphony", artist: "The Verve", spotifyId: "5agirERjH7FeJKGI4Y5mcB" },
+            "05-10": { title: "Song 2", artist: "Blur", spotifyId: "5JxgTU0E7hPbnUmMfTTNlk" },
+            "05-11": { title: "Parklife", artist: "Blur", spotifyId: "4mTLJmwsmI7TunVvDxXoMC" },
+            "05-12": { title: "Girls & Boys", artist: "Blur", spotifyId: "5rL4qdGxQGwlMKYnxQVE8J" },
+            "05-13": { title: "Coffee & TV", artist: "Blur", spotifyId: "6k7jSicP8A0lxGhkXtBFHv" },
+            "05-14": { title: "Tender", artist: "Blur", spotifyId: "5l2UJRCdhm1uKzqRNe0f9g" },
+            "05-15": { title: "The Universal", artist: "Blur", spotifyId: "64VmHwF6qrIl2uyqPb6SRv" },
+            "05-16": { title: "Common People", artist: "Pulp", spotifyId: "2EoOZnxNgtmZaD8uUmz2nD" },
+            "05-17": { title: "Disco 2000", artist: "Pulp", spotifyId: "7tMYbKvpA6FKGq8MTlqKmW" },
+            "05-18": { title: "Sorted for E's & Wizz", artist: "Pulp", spotifyId: "54t1E4N7qsHCMwjBNQXLfn" },
+            "05-19": { title: "Mis-Shapes", artist: "Pulp", spotifyId: "7fwW0JMSqJTH4dlNaqyK3O" },
+            "05-20": { title: "This Is Hardcore", artist: "Pulp", spotifyId: "5IJPOdPrlDbCiYqv4cAuN5" },
+            "05-21": { title: "Wannabe", artist: "Spice Girls", spotifyId: "1Je1IMUlBXcx1Fz0WE7oPT" },
+            "05-22": { title: "Say You'll Be There", artist: "Spice Girls", spotifyId: "3VNLAnXcJFddYMjSJm4eZJ" },
+            "05-23": { title: "2 Become 1", artist: "Spice Girls", spotifyId: "3sYmJPfCfFk3IBerlBRtqr" },
+            "05-24": { title: "Spice Up Your Life", artist: "Spice Girls", spotifyId: "4zRFGp0wlxvyBYz5c8MuAT" },
+            "05-25": { title: "Stop", artist: "Spice Girls", spotifyId: "1TfABHEcYr8LhSxGeBNP7j" },
+            "05-26": { title: "MMMBop", artist: "Hanson", spotifyId: "0gPlGZKVcJXvBA5RSMDGPX" },
+            "05-27": { title: "...Baby One More Time", artist: "Britney Spears", spotifyId: "3MjUtNVVq3C8Fn0MP3zhXa" },
+            "05-28": { title: "Toxic", artist: "Britney Spears", spotifyId: "6I9VzXrHxO9rA9A5euc8Ak" },
+            "05-29": { title: "Oops!... I Did It Again", artist: "Britney Spears", spotifyId: "6naxalmIoLFWR0siv8dnQQ" },
+            "05-30": { title: "Womanizer", artist: "Britney Spears", spotifyId: "3Uo84HXmY8FJpULzfVQDYK" },
+            "05-31": { title: "Gimme More", artist: "Britney Spears", spotifyId: "1cnuirRAJHwRtdufQh9lvm" },
+
+            // JUNE
+            "06-01": { title: "Bye Bye Bye", artist: "*NSYNC", spotifyId: "62bOmKYxYg7dhrC6gH9vFn" },
+            "06-02": { title: "It's Gonna Be Me", artist: "*NSYNC", spotifyId: "5Ykab3NP1JTy2jlIg0n4gX" },
+            "06-03": { title: "Tearin' Up My Heart", artist: "*NSYNC", spotifyId: "2YEGaSKmpQvWkZCDIdllwE" },
+            "06-04": { title: "I Want It That Way", artist: "Backstreet Boys", spotifyId: "47BBI51FKFwOMlIiX6m8ya" },
+            "06-05": { title: "Everybody (Backstreet's Back)", artist: "Backstreet Boys", spotifyId: "5Wl5kWnancPIbGJeIBduVR" },
+            "06-06": { title: "As Long As You Love Me", artist: "Backstreet Boys", spotifyId: "56yM14Eu5KTbUjGonB1mNI" },
+            "06-07": { title: "Larger Than Life", artist: "Backstreet Boys", spotifyId: "5s5xP3pgQW0WsKWO4qFGoi" },
+            "06-08": { title: "Shape of My Heart", artist: "Backstreet Boys", spotifyId: "1GI3XFHT7zKf9NUXgQKxfM" },
+            "06-09": { title: "No Scrubs", artist: "TLC", spotifyId: "5D4ohUOUo7WHhMmHEMdOxu" },
+            "06-10": { title: "Waterfalls", artist: "TLC", spotifyId: "6HRMVPFZ6JFkKgd20pzoEM" },
+            "06-11": { title: "Creep", artist: "TLC", spotifyId: "14EWGJavibJrEiGNSfH12G" },
+            "06-12": { title: "Say My Name", artist: "Destiny's Child", spotifyId: "1lOe9qE0vR9zwWQAOk6CoO" },
+            "06-13": { title: "Survivor", artist: "Destiny's Child", spotifyId: "2Mpv4OUB1tZsV3dVXTLB19" },
+            "06-14": { title: "Bills, Bills, Bills", artist: "Destiny's Child", spotifyId: "3U4isOIWM3VvDubwSI3y7a" },
+            "06-15": { title: "Jumpin' Jumpin'", artist: "Destiny's Child", spotifyId: "4Ga1P7PMIdbXzC4a0SzMm7" },
+            "06-16": { title: "Bootylicious", artist: "Destiny's Child", spotifyId: "6ISyfZvGCPpjhlsQOIjTba" },
+            "06-17": { title: "Independent Women Part I", artist: "Destiny's Child", spotifyId: "7Hc3Qe6WJ9v7FhQFdPHkKB" },
+            "06-18": { title: "Lose My Breath", artist: "Destiny's Child", spotifyId: "0HKoJwUOfMMgI7Kv3YVNsM" },
+            "06-19": { title: "Genie in a Bottle", artist: "Christina Aguilera", spotifyId: "5jrdCoLpJSvHHorevXBATy" },
+            "06-20": { title: "Beautiful", artist: "Christina Aguilera", spotifyId: "7MEPGK2JLMazJNrhBc8VKi" },
+            "06-21": { title: "Fighter", artist: "Christina Aguilera", spotifyId: "5pllGcPdVOHPXTI6MYRM0T" },
+            "06-22": { title: "Dirrty", artist: "Christina Aguilera", spotifyId: "3G0HfBrY9MfB48TLrBNP6X" },
+            "06-23": { title: "Come On Over Baby", artist: "Christina Aguilera", spotifyId: "2Pn8tTKTZQKNQiYrdx0Jdd" },
+            "06-24": { title: "Ain't No Other Man", artist: "Christina Aguilera", spotifyId: "7mDZrLzDSJzhMxrDNxCn5S" },
+            "06-25": { title: "Candy", artist: "Christina Aguilera", spotifyId: "24nUv7N7jz5fC4qyU35tMR" },
+            "06-26": { title: "Livin' la Vida Loca", artist: "Ricky Martin", spotifyId: "6ulBsB3u8dbVBKNMYYvdQk" },
+            "06-27": { title: "She Bangs", artist: "Ricky Martin", spotifyId: "0jdddPJ5Xp12WfKl8YQlQo" },
+            "06-28": { title: "Maria Maria", artist: "Santana ft. Product G&B", spotifyId: "1fXC0JmlCqRvhNIS7dhq2K" },
+            "06-29": { title: "Smooth", artist: "Santana ft. Rob Thomas", spotifyId: "28yVvEvA2kT0JStS5YhFH1" },
+            "06-30": { title: "Corazon Espinado", artist: "Santana ft. Maná", spotifyId: "5ByAIlEEnxYdvpnezg7HTX" },
+
+            // JULY
+            "07-01": { title: "Crazy", artist: "Gnarls Barkley", spotifyId: "3YRCqOhFifThpSRFJ1VWFM" },
+            "07-02": { title: "Rehab", artist: "Amy Winehouse", spotifyId: "26DhKBFjLsBEBYSzjLOHHd" },
+            "07-03": { title: "Back to Black", artist: "Amy Winehouse", spotifyId: "6MkQ2LqJuMWaLBT41M9kTr" },
+            "07-04": { title: "Party in the U.S.A.", artist: "Miley Cyrus", spotifyId: "5Q0Nhxo0l2bP3pNjpGJwV1" },
+            "07-05": { title: "Wrecking Ball", artist: "Miley Cyrus", spotifyId: "713RSdDqMTAp7aA3p0WxcM" },
+            "07-06": { title: "Flowers", artist: "Miley Cyrus", spotifyId: "0yLdNVWF3Srea0uzk55zFr" },
+            "07-07": { title: "Seven Nation Army", artist: "The White Stripes", spotifyId: "3VdvKk9j1lmk2iNg5iSiHJ" },
+            "07-08": { title: "Fell in Love with a Girl", artist: "The White Stripes", spotifyId: "3VXtkBYJvkKKqFCvmsKfWB" },
+            "07-09": { title: "Are You Gonna Be My Girl", artist: "Jet", spotifyId: "1rbRpXgCOKpRFPCyrsH7nK" },
+            "07-10": { title: "Last Nite", artist: "The Strokes", spotifyId: "61qBIaUhe3P5iYT8T0S2D8" },
+            "07-11": { title: "Someday", artist: "The Strokes", spotifyId: "6ygCWa8lC4wWXJaWFuRlB0" },
+            "07-12": { title: "Reptilia", artist: "The Strokes", spotifyId: "0CMYEr0IIMwFu9qZe5NeJT" },
+            "07-13": { title: "Is This It", artist: "The Strokes", spotifyId: "0hNhlrfmJYBFqjSNHqasMM" },
+            "07-14": { title: "Hard to Explain", artist: "The Strokes", spotifyId: "6jPLqOF3h6oq7xnXLfMOin" },
+            "07-15": { title: "The Modern Age", artist: "The Strokes", spotifyId: "4rbfpITmKyslzBuUfFgnfx" },
+            "07-16": { title: "12:51", artist: "The Strokes", spotifyId: "10StyAu7WmWgJQyO2jVYPm" },
+            "07-17": { title: "Take Me Out", artist: "Franz Ferdinand", spotifyId: "10VpPOhAzRuXnbwzHFQTat" },
+            "07-18": { title: "Do I Wanna Know?", artist: "Arctic Monkeys", spotifyId: "5FVd6KXrgO9B3JPmC8OPst" },
+            "07-19": { title: "R U Mine?", artist: "Arctic Monkeys", spotifyId: "56oMrXcPaKQrwbdqyM2cL6" },
+            "07-20": { title: "I Bet You Look Good on the Dancefloor", artist: "Arctic Monkeys", spotifyId: "3DQVnqoHshKwuVPdwl5hLt" },
+            "07-21": { title: "505", artist: "Arctic Monkeys", spotifyId: "58ge6dfP91o9oXMzq3XkIS" },
+            "07-22": { title: "Fluorescent Adolescent", artist: "Arctic Monkeys", spotifyId: "2A7GrnSFH2Tdn5lD0N9oGa" },
+            "07-23": { title: "When the Sun Goes Down", artist: "Arctic Monkeys", spotifyId: "5gY1x6PgQ5p8GbZqASTmfV" },
+            "07-24": { title: "Crying Lightning", artist: "Arctic Monkeys", spotifyId: "1IhC7LU9DmcF3cT0SxovN8" },
+            "07-25": { title: "Mardy Bum", artist: "Arctic Monkeys", spotifyId: "0VbmNIrx17TqdU0L5jJtGH" },
+            "07-26": { title: "Teddy Picker", artist: "Arctic Monkeys", spotifyId: "3DamN6cjF0y3KHiS4aqzfb" },
+            "07-27": { title: "Brianstorm", artist: "Arctic Monkeys", spotifyId: "2K7X7dYYR62Tc1bIY2MVAC" },
+            "07-28": { title: "A Certain Romance", artist: "Arctic Monkeys", spotifyId: "2GEhUCrb8LQNPSvUGo4v7G" },
+            "07-29": { title: "Snap Out of It", artist: "Arctic Monkeys", spotifyId: "0zqLrSY8whX6zDcCOl4GqY" },
+            "07-30": { title: "Arabella", artist: "Arctic Monkeys", spotifyId: "6GfB5WGwt2v4LSjRzI7vLx" },
+            "07-31": { title: "Why'd You Only Call Me When You're High?", artist: "Arctic Monkeys", spotifyId: "1AWxPSQJQvHXDqVF4IyNu3" },
+
+            // AUGUST
+            "08-01": { title: "Feel Good Inc", artist: "Gorillaz", spotifyId: "0d28khcov6AiegSCpG5TuT" },
+            "08-02": { title: "Clint Eastwood", artist: "Gorillaz", spotifyId: "7yMiX7n9SBvNM88sLPUbIn" },
+            "08-03": { title: "DARE", artist: "Gorillaz", spotifyId: "1cy0bVJCIZKrlgf4ZEotqb" },
+            "08-04": { title: "On Melancholy Hill", artist: "Gorillaz", spotifyId: "0q6LuUqGLUiCPP1cbdwFs3" },
+            "08-05": { title: "Stylo", artist: "Gorillaz", spotifyId: "0q6LuUqGLUiCPP1cbdwFs3" },
+            "08-06": { title: "19-2000", artist: "Gorillaz", spotifyId: "5pINj8qJJXHnrMJJwPzN1F" },
+            "08-07": { title: "Kids", artist: "MGMT", spotifyId: "1jJci4qxiYcOHhQR247rEU" },
+            "08-08": { title: "Electric Feel", artist: "MGMT", spotifyId: "3FtYbEfBqAlGO46NUDQSAt" },
+            "08-09": { title: "Time to Pretend", artist: "MGMT", spotifyId: "1Yj1iAdx1kb8fxOJb2UdXa" },
+            "08-10": { title: "Little Dark Age", artist: "MGMT", spotifyId: "2Y0iGXY6m6immN2xTTvNOx" },
+            "08-11": { title: "Pumped Up Kicks", artist: "Foster the People", spotifyId: "7w87IxuO7BDcJ3YUqCyMTT" },
+            "08-12": { title: "Somebody I Used to Know", artist: "Gotye", spotifyId: "4wCmqSrbyCgxEXROQE6vtV" },
+            "08-13": { title: "Riptide", artist: "Vance Joy", spotifyId: "3JvrhDOgAt6p7K8mDyZwRd" },
+            "08-14": { title: "Ho Hey", artist: "The Lumineers", spotifyId: "1TGJ9PltDwHzZUMiZI7haf" },
+            "08-15": { title: "Ophelia", artist: "The Lumineers", spotifyId: "5l7ZAhFoKE4rhDfsmqY4dX" },
+            "08-16": { title: "Stubborn Love", artist: "The Lumineers", spotifyId: "2b9VVPMEBTMJHyxHMbkDwH" },
+            "08-17": { title: "Flashing Lights", artist: "Kanye West", spotifyId: "5O2CKjfL4YPSYzE28YOcga" },
+            "08-18": { title: "Stronger", artist: "Kanye West", spotifyId: "4fzsfWzRhPawzqhX8Qt9F3" },
+            "08-19": { title: "Gold Digger", artist: "Kanye West", spotifyId: "1PS1QMdUqOal0ai3Gt7sDQ" },
+            "08-20": { title: "Heartless", artist: "Kanye West", spotifyId: "0pqnGHJpmpxLKifKRmU6WP" },
+            "08-21": { title: "All of the Lights", artist: "Kanye West", spotifyId: "22L7bfCiAkJo5xGSQgmiIO" },
+            "08-22": { title: "Runaway", artist: "Kanye West", spotifyId: "3DK6m7It6Pw857FcQftMds" },
+            "08-23": { title: "Power", artist: "Kanye West", spotifyId: "2gZUPNdnz5Y45eiGxpHGSc" },
+            "08-24": { title: "Jesus Walks", artist: "Kanye West", spotifyId: "6a9fGl67NwCy2oHwPUpzKk" },
+            "08-25": { title: "Touch the Sky", artist: "Kanye West", spotifyId: "4t3e3TnYdMI2mL3wzHfS1r" },
+            "08-26": { title: "Can't Tell Me Nothing", artist: "Kanye West", spotifyId: "4CkUJJkJLVjQR9NMzW0a9d" },
+            "08-27": { title: "Gorgeous", artist: "Kanye West", spotifyId: "1OxyOKUGe3m6P64HdXYkpA" },
+            "08-28": { title: "Devil in a New Dress", artist: "Kanye West", spotifyId: "5jX22qaAqGntq9T8Poo5DW" },
+            "08-29": { title: "Dark Fantasy", artist: "Kanye West", spotifyId: "4GWHC8QFqAiwLCLW95htB7" },
+            "08-30": { title: "Blood on the Leaves", artist: "Kanye West", spotifyId: "0p17M5SRQ3jCG4r9w0yXh5" },
+            "08-31": { title: "Bound 2", artist: "Kanye West", spotifyId: "19a3JfW8BQwqHWUMbcqSx8" },
+
+            // SEPTEMBER
+            "09-01": { title: "Stan", artist: "Eminem", spotifyId: "3UmaczJpikHgJFyBTAJVoz" },
+            "09-02": { title: "Lose Yourself", artist: "Eminem", spotifyId: "5Z01UMMf7V1o0MzF86s6WJ" },
+            "09-03": { title: "The Real Slim Shady", artist: "Eminem", spotifyId: "3yfqSUWxFvZELEM4PmlwIR" },
+            "09-04": { title: "Without Me", artist: "Eminem", spotifyId: "7lQ8MOhq6IN2w8EYcFNSUk" },
+            "09-05": { title: "Mockingbird", artist: "Eminem", spotifyId: "561jH07mF1jHuk7KlaeF0s" },
+            "09-06": { title: "Cleaning Out My Closet", artist: "Eminem", spotifyId: "7bv0y5ncJzYEFnysvv78rN" },
+            "09-07": { title: "Sing for the Moment", artist: "Eminem", spotifyId: "3GnZDcPR7xZHBtXxQ2YFLO" },
+            "09-08": { title: "Not Afraid", artist: "Eminem", spotifyId: "6kLUz50MVreNIILKufDRrs" },
+            "09-09": { title: "Love the Way You Lie", artist: "Eminem ft. Rihanna", spotifyId: "2Lb8voEjB3bZCVh8XjjCdb" },
+            "09-10": { title: "Rap God", artist: "Eminem", spotifyId: "6or1bKJiZ06IlK0vFvY75k" },
+            "09-11": { title: "Godzilla", artist: "Eminem ft. Juice WRLD", spotifyId: "7FIWs0pqAYbP91WWM0vlTQ" },
+            "09-12": { title: "In Da Club", artist: "50 Cent", spotifyId: "7iL6o9tox1zgHpKUfh9vuC" },
+            "09-13": { title: "Candy Shop", artist: "50 Cent", spotifyId: "0q8hqJVi5mK10X3XfHUJgP" },
+            "09-14": { title: "21 Questions", artist: "50 Cent", spotifyId: "5CVYNqmfDHePbXcIE5PoTP" },
+            "09-15": { title: "Many Men", artist: "50 Cent", spotifyId: "4MHXj0HYi1NKoIGCIiXvAH" },
+            "09-16": { title: "P.I.M.P.", artist: "50 Cent", spotifyId: "4xhsWYTOGcal8zt0J161Th" },
+            "09-17": { title: "Hate It or Love It", artist: "The Game ft. 50 Cent", spotifyId: "3V8UFFrCP9hIcRtERaAnPg" },
+            "09-18": { title: "How We Do", artist: "The Game ft. 50 Cent", spotifyId: "6BxcMLrxh3YTpT2XSPG4J7" },
+            "09-19": { title: "Still D.R.E.", artist: "Dr. Dre ft. Snoop Dogg", spotifyId: "503OTo2dSqe7qk76rgsbep" },
+            "09-20": { title: "The Next Episode", artist: "Dr. Dre ft. Snoop Dogg", spotifyId: "3LOpnH9lBCy1SBZGjLpkwG" },
+            "09-21": { title: "Forgot About Dre", artist: "Dr. Dre ft. Eminem", spotifyId: "3YW2dWjYV6afWB3ooaGxR5" },
+            "09-22": { title: "Nuthin' but a 'G' Thang", artist: "Dr. Dre", spotifyId: "6VlWVDp3j0BY4Fy3KFxYBC" },
+            "09-23": { title: "Gin and Juice", artist: "Snoop Dogg", spotifyId: "6ivYFsRFTyLpOuwqAGRxrr" },
+            "09-24": { title: "Drop It Like It's Hot", artist: "Snoop Dogg", spotifyId: "2nLpHZ2RHSV7DXfJXJcfJr" },
+            "09-25": { title: "Beautiful", artist: "Snoop Dogg ft. Pharrell", spotifyId: "3XzVSyFifeZKMGZpEONYAV" },
+            "09-26": { title: "Young, Wild & Free", artist: "Snoop Dogg & Wiz Khalifa", spotifyId: "3MpL5M9WZJVsfvULp9XGCN" },
+            "09-27": { title: "Who Am I (What's My Name)?", artist: "Snoop Dogg", spotifyId: "0O6FUC3WJPxVbGHGHt5mL4" },
+            "09-28": { title: "California Love", artist: "2Pac ft. Dr. Dre", spotifyId: "2PBeiwVKaqWRc2Cczz4Vl5" },
+            "09-29": { title: "Changes", artist: "2Pac", spotifyId: "6hJbHRmjDHFWkqz5dF8GfC" },
+            "09-30": { title: "Dear Mama", artist: "2Pac", spotifyId: "4MmT6FCEUL7g5hS0q1QkE2" },
+
+            // OCTOBER
+            "10-01": { title: "Juicy", artist: "The Notorious B.I.G.", spotifyId: "3td69vL7Py5dZKAguAjmfj" },
+            "10-02": { title: "Big Poppa", artist: "The Notorious B.I.G.", spotifyId: "2e3R9CxUMxJQ3E7e6Ud3k2" },
+            "10-03": { title: "Hypnotize", artist: "The Notorious B.I.G.", spotifyId: "6GbLMhAd7P1K3YivjOCHWk" },
+            "10-04": { title: "Mo Money Mo Problems", artist: "The Notorious B.I.G.", spotifyId: "5v5YMNa7tDbYYhvd1VArD4" },
+            "10-05": { title: "Sky's the Limit", artist: "The Notorious B.I.G.", spotifyId: "1l24XzLz0eFWXEzMy8KxYo" },
+            "10-06": { title: "Empire State of Mind", artist: "Jay-Z ft. Alicia Keys", spotifyId: "2igwFfvr1OAGX9SKDCPBwO" },
+            "10-07": { title: "99 Problems", artist: "Jay-Z", spotifyId: "6LbLwi8DrByNpAhdDWMjL0" },
+            "10-08": { title: "Hard Knock Life", artist: "Jay-Z", spotifyId: "7nXq1vaZiz7PdbfojpPjBO" },
+            "10-09": { title: "Izzo (H.O.V.A.)", artist: "Jay-Z", spotifyId: "1K0TqPNXI46fCXm7gTyEUJ" },
+            "10-10": { title: "Run This Town", artist: "Jay-Z ft. Rihanna & Kanye West", spotifyId: "0CZUEgZqgKZPJjYOu9sJp9" },
+            "10-11": { title: "Dirt Off Your Shoulder", artist: "Jay-Z", spotifyId: "4eVhDqTYPQPbgLzPKnvTpI" },
+            "10-12": { title: "N****s in Paris", artist: "Jay-Z & Kanye West", spotifyId: "4Li2WHPkuyCdtmokzW2007" },
+            "10-13": { title: "Otis", artist: "Jay-Z & Kanye West", spotifyId: "5XZ66iJPMjFYqUfqA6zHDh" },
+            "10-14": { title: "Holy Grail", artist: "Jay-Z ft. Justin Timberlake", spotifyId: "5CMjjywI0eZMixPeqNd75R" },
+            "10-15": { title: "Suit & Tie", artist: "Justin Timberlake ft. Jay-Z", spotifyId: "5jEoLrkNNNjnJQNyTIZF0b" },
+            "10-16": { title: "Mirrors", artist: "Justin Timberlake", spotifyId: "7eJMfftS33KTjuF7lTsMCx" },
+            "10-17": { title: "Cry Me a River", artist: "Justin Timberlake", spotifyId: "7ySUcLPVX7KudhnmNcgY6D" },
+            "10-18": { title: "SexyBack", artist: "Justin Timberlake", spotifyId: "0TJCKkNMPvfZtOBDOlpbjO" },
+            "10-19": { title: "Rock Your Body", artist: "Justin Timberlake", spotifyId: "3wRXsjubGm3pDXsTwmbfrP" },
+            "10-20": { title: "Can't Stop the Feeling!", artist: "Justin Timberlake", spotifyId: "0GnE3DxOrPkasxHN9dRnLb" },
+            "10-21": { title: "Sexy Love", artist: "Ne-Yo", spotifyId: "24TRKTOPpzWKPTjZQhKgSZ" },
+            "10-22": { title: "So Sick", artist: "Ne-Yo", spotifyId: "5RWx5B8cI6FBCS6a9gMDa0" },
+            "10-23": { title: "Closer", artist: "Ne-Yo", spotifyId: "5DKVPLzINpMjYlsKVUWI0Y" },
+            "10-24": { title: "Because of You", artist: "Ne-Yo", spotifyId: "0tDMqLa6H63WxoJFNuOQK4" },
+            "10-25": { title: "Miss Independent", artist: "Ne-Yo", spotifyId: "1sBTH7LFYX7tqfIpW4z1qP" },
+            "10-26": { title: "Yeah!", artist: "Usher ft. Lil Jon & Ludacris", spotifyId: "0b3AuGJy03J7MJxVVnULKB" },
+            "10-27": { title: "U Got It Bad", artist: "Usher", spotifyId: "4Mlp2H5dY3XPPKmYXkePdl" },
+            "10-28": { title: "Confessions Part II", artist: "Usher", spotifyId: "5Ek8aOvUlVGcMb3dPadCFC" },
+            "10-29": { title: "Burn", artist: "Usher", spotifyId: "7HJZqU0MbaMhLQQ4zCRBLd" },
+            "10-30": { title: "Thriller", artist: "Michael Jackson", spotifyId: "3S2R0EVwBSAVMd5UMgKTL0" },
+            "10-31": { title: "Ghostbusters", artist: "Ray Parker Jr.", spotifyId: "3m0y8qLoznUYi73SUBP4GE" },
+
+            // NOVEMBER
+            "11-01": { title: "Superstition", artist: "Stevie Wonder", spotifyId: "1h2xVEoJORqrg71HocgqXd" },
+            "11-02": { title: "Isn't She Lovely", artist: "Stevie Wonder", spotifyId: "6yFGnwIFFIhAoJjFQglj7R" },
+            "11-03": { title: "Sir Duke", artist: "Stevie Wonder", spotifyId: "4Bqm0auFCvvfzTEsJACHfk" },
+            "11-04": { title: "Higher Ground", artist: "Stevie Wonder", spotifyId: "4rdRozCpYmRMDGhwPmXjDI" },
+            "11-05": { title: "I Wish", artist: "Stevie Wonder", spotifyId: "3Q5cUCqfapmUEsJnF93y4Y" },
+            "11-06": { title: "Signed, Sealed, Delivered (I'm Yours)", artist: "Stevie Wonder", spotifyId: "4bR6qUP3KD8aaFDzPVLGKM" },
+            "11-07": { title: "For Once in My Life", artist: "Stevie Wonder", spotifyId: "7bCswHAFXnKX3d2QNvwNFq" },
+            "11-08": { title: "My Cherie Amour", artist: "Stevie Wonder", spotifyId: "7dNgPJN6vplSH2fCjVz2B1" },
+            "11-09": { title: "You Are the Sunshine of My Life", artist: "Stevie Wonder", spotifyId: "3v0sx7eJWmqMF2PwcCP5Sp" },
+            "11-10": { title: "I Just Called to Say I Love You", artist: "Stevie Wonder", spotifyId: "6aaTxNAe6JWO0Q3bkwAzGB" },
+            "11-11": { title: "Part-Time Lover", artist: "Stevie Wonder", spotifyId: "7eCyMlkLSvJHqbq0zJ6Y6Y" },
+            "11-12": { title: "Lovely Day", artist: "Bill Withers", spotifyId: "1B5LYprqXNh2YEtrzfkVEl" },
+            "11-13": { title: "Lean on Me", artist: "Bill Withers", spotifyId: "0JGNSq74X0fqb2eFWGTjgh" },
+            "11-14": { title: "Ain't No Sunshine", artist: "Bill Withers", spotifyId: "1k1Bqnv2R0uJXQN4u6LKYt" },
+            "11-15": { title: "Just the Two of Us", artist: "Grover Washington Jr.", spotifyId: "4WhqjDn5EzaKLJmkJHXyiW" },
+            "11-16": { title: "September", artist: "Earth, Wind & Fire", spotifyId: "7Cuk8SF1N08RHN3VUcqmBR" },
+            "11-17": { title: "Boogie Wonderland", artist: "Earth, Wind & Fire", spotifyId: "3fOgSqxdFmXD7eF1S5X5ho" },
+            "11-18": { title: "Let's Groove", artist: "Earth, Wind & Fire", spotifyId: "1y7HAUBB7EDJYGNdDB87LZ" },
+            "11-19": { title: "Shining Star", artist: "Earth, Wind & Fire", spotifyId: "0RAvtKLJmJHV7yfCGKs3S3" },
+            "11-20": { title: "After the Love Has Gone", artist: "Earth, Wind & Fire", spotifyId: "7Kl7P2cxtuNLBaSjOlb1cK" },
+            "11-21": { title: "Fantasy", artist: "Earth, Wind & Fire", spotifyId: "3T9RaGUkCVIv5x7zAJXfLt" },
+            "11-22": { title: "Reasons", artist: "Earth, Wind & Fire", spotifyId: "2yWvDmvhMDrlZ7wT0RgFWV" },
+            "11-23": { title: "I Can't Help It", artist: "Michael Jackson", spotifyId: "3uEnRNAhq3v8EtNNWaXYlQ" },
+            "11-24": { title: "Rock with You", artist: "Michael Jackson", spotifyId: "7oOOI85fVQvVnK5ynNMdV7" },
+            "11-25": { title: "Don't Stop 'Til You Get Enough", artist: "Michael Jackson", spotifyId: "46eu3SBuFCXWsPT39Yg3tJ" },
+            "11-26": { title: "Wanna Be Startin' Somethin'", artist: "Michael Jackson", spotifyId: "4LbcJ9KKZY6vU1M3Jdn59A" },
+            "11-27": { title: "P.Y.T. (Pretty Young Thing)", artist: "Michael Jackson", spotifyId: "5nkPSlHET4mLgMKttPQMpD" },
+            "11-28": { title: "The Way You Make Me Feel", artist: "Michael Jackson", spotifyId: "1xPBwZoXzthfQ5K2PyVoM6" },
+            "11-29": { title: "Smooth Criminal", artist: "Michael Jackson", spotifyId: "1zMeb3q7s74fNvpGVoNRwA" },
+            "11-30": { title: "Man in the Mirror", artist: "Michael Jackson", spotifyId: "4ILHSwHP3NcNz8MTF0u8Xz" },
+
+            // DECEMBER
+            "12-01": { title: "Beat It", artist: "Michael Jackson", spotifyId: "3BovdzfaX4jb5KFQwoPfAw" },
+            "12-02": { title: "Bad", artist: "Michael Jackson", spotifyId: "1gvX4vB0hOBQDqEF8cqGVx" },
+            "12-03": { title: "Black or White", artist: "Michael Jackson", spotifyId: "1OOtq8tRnDM8kG2gqUPjAj" },
+            "12-04": { title: "Remember the Time", artist: "Michael Jackson", spotifyId: "6bALpFkSCbltsTlaIsvLAE" },
+            "12-05": { title: "Earth Song", artist: "Michael Jackson", spotifyId: "7jqGxYWP1uZ9FNfWKm0uYN" },
+            "12-06": { title: "They Don't Care About Us", artist: "Michael Jackson", spotifyId: "0Z3IbJh0cSJggVXpHpdcbI" },
+            "12-07": { title: "Scream", artist: "Michael Jackson & Janet Jackson", spotifyId: "7FGq80cy8qRt1cWJFdWzVz" },
+            "12-08": { title: "You Are Not Alone", artist: "Michael Jackson", spotifyId: "6UE7nl9mh7ne4BpPn89W0E" },
+            "12-09": { title: "Human Nature", artist: "Michael Jackson", spotifyId: "0TK2YIli7K1leLovkQiNik" },
+            "12-10": { title: "Off the Wall", artist: "Michael Jackson", spotifyId: "7acEciVtnuTzmwKptkjwgB" },
+            "12-11": { title: "Workin' Day and Night", artist: "Michael Jackson", spotifyId: "6FxOB5wjV0mXy49kFHRHkp" },
+            "12-12": { title: "Wham Bam", artist: "Silver", spotifyId: "0U5C8PJdW8zNYqhLI5sSdN" },
+            "12-13": { title: "Jingle Bell Rock", artist: "Bobby Helms", spotifyId: "7vQbuQcyTflfCIOu3Uzzya" },
+            "12-14": { title: "Rockin' Around the Christmas Tree", artist: "Brenda Lee", spotifyId: "2EjXfH91m7f8HiJN1yQg97" },
+            "12-15": { title: "It's the Most Wonderful Time of the Year", artist: "Andy Williams", spotifyId: "5hslUAKq9I9CG2bAulFkHN" },
+            "12-16": { title: "Let It Snow! Let It Snow! Let It Snow!", artist: "Dean Martin", spotifyId: "2uFaJJtFpPDc5Pa95XzTvg" },
+            "12-17": { title: "Winter Wonderland", artist: "Dean Martin", spotifyId: "74IaV9HUC5VW1Y9mcpXHB2" },
+            "12-18": { title: "Have Yourself a Merry Little Christmas", artist: "Frank Sinatra", spotifyId: "6wbBn3dqfsJBvERIQH77jT" },
+            "12-19": { title: "The Christmas Song", artist: "Nat King Cole", spotifyId: "5hJLUBvnOrnXORPEqbAqBl" },
+            "12-20": { title: "White Christmas", artist: "Bing Crosby", spotifyId: "31EHLfZPXCPWjMlHEhdBXX" },
+            "12-21": { title: "Santa Claus Is Comin' to Town", artist: "Bruce Springsteen", spotifyId: "4e6HLlbWHaWLLPpzqvCwqd" },
+            "12-22": { title: "Feliz Navidad", artist: "José Feliciano", spotifyId: "0oPkN8ysXoVhqQCPy7G3oP" },
+            "12-23": { title: "Last Christmas", artist: "Wham!", spotifyId: "2FRnf9qhLbvw8fu4IBXx78" },
+            "12-24": { title: "All I Want for Christmas Is You", artist: "Mariah Carey", spotifyId: "0bYg9bo50gSsH3LtXe2SQn" },
+            "12-25": { title: "Happy Xmas (War Is Over)", artist: "John Lennon", spotifyId: "3FAMI8xXDYez9u3RLhaNnp" },
+            "12-26": { title: "Do They Know It's Christmas?", artist: "Band Aid", spotifyId: "4CZ7W6gtRpGt7Xg6r3J0Xk" },
+            "12-27": { title: "Wonderful Christmastime", artist: "Paul McCartney", spotifyId: "5seJYwLccpBxDKhxoD4M6Q" },
+            "12-28": { title: "Driving Home for Christmas", artist: "Chris Rea", spotifyId: "7I56YLwtWDGfp9Slzh0EVe" },
+            "12-29": { title: "Fairytale of New York", artist: "The Pogues", spotifyId: "3exJ7xJFFBNLagEnKzSoVR" },
+            "12-30": { title: "Auld Lang Syne", artist: "Various Artists", spotifyId: "4YY8cHIqvVH5VVgmjsEBRM" },
+            "12-31": { title: "New Year's Day", artist: "U2", spotifyId: "6K51XLQr0M1kcIVc9ygpbn" }
+        };
+
+        // Get today's date as MM-DD string
+        function getTodayKey() {
+            const now = new Date();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${month}-${day}`;
+        }
+
+        // Format date for display
+        function formatDate(dateKey) {
+            const [month, day] = dateKey.split('-');
+            const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                           'July', 'August', 'September', 'October', 'November', 'December'];
+            return `${months[parseInt(month) - 1]} ${parseInt(day)}`;
+        }
+
+        // Initialize the page
+        function init() {
+            const todayKey = getTodayKey();
+            const song = songs[todayKey];
+
+            if (!song) {
+                document.getElementById('day-badge').textContent = formatDate(todayKey);
+                document.getElementById('song-title').textContent = 'No song for today';
+                document.getElementById('song-artist').textContent = 'Check back tomorrow!';
+                return;
+            }
+
+            // Update the UI
+            document.getElementById('day-badge').textContent = formatDate(todayKey);
+            document.getElementById('song-title').textContent = song.title;
+            document.getElementById('song-artist').textContent = song.artist;
+
+            // Create Spotify embed
+            const embedContainer = document.getElementById('spotify-embed');
+            embedContainer.innerHTML = `
+                <iframe
+                    src="https://open.spotify.com/embed/track/${song.spotifyId}?utm_source=generator&theme=0"
+                    width="100%"
+                    height="152"
+                    frameBorder="0"
+                    allowfullscreen=""
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                    loading="lazy">
+                </iframe>
+            `;
+        }
+
+        // Check for debug mode (localhost only)
+        const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+        const isDebugMode = isLocalhost && new URLSearchParams(window.location.search).has('debug');
+
+        if (isDebugMode) {
+            renderDebugMode();
+        } else {
+            init();
+        }
+
+        function renderDebugMode() {
+            const container = document.querySelector('.container');
+            const todayKey = getTodayKey();
+            const songEntries = Object.entries(songs).sort((a, b) => a[0].localeCompare(b[0]));
+
+            // Group by month
+            const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                           'July', 'August', 'September', 'October', 'November', 'December'];
+
+            container.innerHTML = `
+                <div class="debug-container">
+                    <div class="debug-header">
+                        <div>
+                            <div class="debug-title">Song of the Day - Debug</div>
+                            <div class="debug-stats">${songEntries.length} songs loaded</div>
+                        </div>
+                        <a href="./" class="back-link">← Exit Debug</a>
+                    </div>
+                    <div class="debug-filters" id="month-filters">
+                        <button class="debug-filter active" data-month="all">All</button>
+                        ${months.map((m, i) => `<button class="debug-filter" data-month="${String(i+1).padStart(2,'0')}">${m.slice(0,3)}</button>`).join('')}
+                    </div>
+                    <div class="debug-list" id="song-list"></div>
+                </div>
+                <div class="debug-preview" id="preview" style="display: none;">
+                    <div class="debug-preview-header">
+                        <span class="debug-preview-title" id="preview-title">Testing...</span>
+                        <button class="debug-preview-close" onclick="closePreview()">×</button>
+                    </div>
+                    <div id="preview-embed"></div>
+                </div>
+            `;
+
+            const songList = document.getElementById('song-list');
+            const monthFilters = document.getElementById('month-filters');
+
+            // Track edits in memory
+            const edits = {};
+
+            function renderSongs(filterMonth = 'all') {
+                const filtered = filterMonth === 'all'
+                    ? songEntries
+                    : songEntries.filter(([date]) => date.startsWith(filterMonth));
+
+                songList.innerHTML = filtered.map(([date, song]) => {
+                    const isToday = date === todayKey;
+                    const current = edits[date] || song;
+                    return `
+                        <div class="debug-song ${isToday ? 'today' : ''}" data-date="${date}" onclick="toggleEdit('${date}')">
+                            <span class="debug-date">${formatDate(date)}${isToday ? ' ★' : ''}</span>
+                            <div class="debug-info">
+                                <div class="debug-song-title">${current.title}</div>
+                                <div class="debug-artist">${current.artist}</div>
+                            </div>
+                            <span class="debug-id">${current.spotifyId}</span>
+                            <button class="debug-test" onclick="event.stopPropagation()">Edit</button>
+                            <div class="debug-edit-form" onclick="event.stopPropagation()">
+                                <div class="debug-edit-row">
+                                    <div class="debug-edit-field">
+                                        <label>Title</label>
+                                        <input type="text" id="edit-title-${date}" value="${current.title.replace(/"/g, '&quot;')}">
+                                    </div>
+                                    <div class="debug-edit-field">
+                                        <label>Artist</label>
+                                        <input type="text" id="edit-artist-${date}" value="${current.artist.replace(/"/g, '&quot;')}">
+                                    </div>
+                                </div>
+                                <div class="debug-edit-row">
+                                    <div class="debug-edit-field spotify-id">
+                                        <label>Spotify ID (or paste full link)</label>
+                                        <input type="text" id="edit-spotify-${date}" value="${current.spotifyId}" placeholder="e.g. 0VjIjW4GlUZAMYd2vXMi3b" oninput="extractSpotifyId(this)">
+                                    </div>
+                                </div>
+                                <div class="debug-edit-actions">
+                                    <button class="debug-btn debug-btn-test" onclick="testEdited('${date}')">Test</button>
+                                    <button class="debug-btn debug-btn-copy" onclick="copyEntry('${date}', this)">Copy Code</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            renderSongs();
+
+            // Extract Spotify ID from URL if pasted
+            window.extractSpotifyId = function(input) {
+                const value = input.value.trim();
+                // Match spotify.com/track/ID or spotify.com/intl-xx/track/ID patterns
+                const match = value.match(/spotify\.com(?:\/intl-[a-z]{2})?\/track\/([a-zA-Z0-9]+)/);
+                if (match) {
+                    input.value = match[1];
+                }
+            };
+
+            // Toggle edit mode for a song
+            window.toggleEdit = function(date) {
+                const songEl = document.querySelector(`.debug-song[data-date="${date}"]`);
+                const wasEditing = songEl.classList.contains('editing');
+
+                // Close all others
+                document.querySelectorAll('.debug-song.editing').forEach(el => el.classList.remove('editing'));
+
+                if (!wasEditing) {
+                    songEl.classList.add('editing');
+                }
+            };
+
+            // Test with edited values
+            window.testEdited = function(date) {
+                const title = document.getElementById(`edit-title-${date}`).value;
+                const artist = document.getElementById(`edit-artist-${date}`).value;
+                const spotifyId = document.getElementById(`edit-spotify-${date}`).value;
+
+                // Save edit in memory
+                edits[date] = { title, artist, spotifyId };
+
+                const preview = document.getElementById('preview');
+                const previewTitle = document.getElementById('preview-title');
+                const previewEmbed = document.getElementById('preview-embed');
+
+                previewTitle.textContent = `${title} - ${artist}`;
+                previewEmbed.innerHTML = `
+                    <iframe
+                        src="https://open.spotify.com/embed/track/${spotifyId}?utm_source=generator&theme=0"
+                        width="100%"
+                        height="152"
+                        frameBorder="0"
+                        allowfullscreen=""
+                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                        loading="lazy">
+                    </iframe>
+                `;
+                preview.style.display = 'block';
+            };
+
+            // Copy the code entry to clipboard
+            window.copyEntry = function(date, btn) {
+                const title = document.getElementById(`edit-title-${date}`).value;
+                const artist = document.getElementById(`edit-artist-${date}`).value;
+                const spotifyId = document.getElementById(`edit-spotify-${date}`).value;
+
+                const code = `"${date}": { title: "${title}", artist: "${artist}", spotifyId: "${spotifyId}" },`;
+
+                navigator.clipboard.writeText(code).then(() => {
+                    btn.textContent = 'Copied!';
+                    btn.classList.add('copied');
+                    setTimeout(() => {
+                        btn.textContent = 'Copy Code';
+                        btn.classList.remove('copied');
+                    }, 2000);
+                });
+            };
+
+            // Month filter clicks
+            monthFilters.addEventListener('click', (e) => {
+                if (e.target.classList.contains('debug-filter')) {
+                    document.querySelectorAll('.debug-filter').forEach(f => f.classList.remove('active'));
+                    e.target.classList.add('active');
+                    renderSongs(e.target.dataset.month);
+                }
+            });
+
+            // Scroll to today
+            setTimeout(() => {
+                const todayEl = document.querySelector('.debug-song.today');
+                if (todayEl) {
+                    todayEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 100);
+        }
+
+        window.closePreview = function() {
+            document.getElementById('preview').style.display = 'none';
+        };
+    </script>
+</body>
+</html>
