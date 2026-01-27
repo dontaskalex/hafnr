@@ -662,6 +662,13 @@
             display: none;
         }
 
+        /* Skills row container for multiple skills */
+        .card-skills-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
         /* WoW-style skill icon - square with radial cooldown */
         .card-skill {
             position: relative;
@@ -2368,12 +2375,35 @@
 
         .skill-options {
             display: flex;
+            flex-wrap: wrap;
             gap: 12px;
             margin-bottom: 16px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 180, 100, 0.4) rgba(0, 0, 0, 0.2);
+        }
+
+        .skill-options::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .skill-options::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        .skill-options::-webkit-scrollbar-thumb {
+            background: rgba(255, 180, 100, 0.4);
+            border-radius: 4px;
+        }
+
+        .skill-options::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 180, 100, 0.6);
         }
 
         .skill-card {
             flex: 1;
+            min-width: 150px;
+            max-width: calc(33.33% - 8px);
             padding: 20px 16px;
             background: linear-gradient(180deg, rgba(40, 30, 50, 0.8) 0%, rgba(25, 20, 35, 0.9) 100%);
             border: 2px solid rgba(255, 255, 255, 0.1);
@@ -3117,15 +3147,28 @@
                 passiveEl.style.display = 'none';
             }
 
-            // Generate 3 random skill options, excluding skills the ant already has
+            // Generate skill options, excluding skills the ant already has
             const allSkillKeys = Object.keys(ANT_SKILLS);
             const excludeKeys = [];
             if (ant.skillKey) excludeKeys.push(ant.skillKey);
             if (ant.skillKey2) excludeKeys.push(ant.skillKey2);
             const availableKeys = allSkillKeys.filter(k => !excludeKeys.includes(k));
-            // Shuffle and pick 3 random skills
-            const shuffled = availableKeys.sort(() => Math.random() - 0.5);
-            const selectedSkillKeys = shuffled.slice(0, 3);
+
+            // Debug mode on localhost: show ALL skills in a scrollable list
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            let selectedSkillKeys;
+            if (isLocalhost) {
+                // Sort skills alphabetically for easier finding
+                selectedSkillKeys = availableKeys.sort((a, b) => ANT_SKILLS[a].name.localeCompare(ANT_SKILLS[b].name));
+                optionsEl.style.maxHeight = '400px';
+                optionsEl.style.overflowY = 'auto';
+            } else {
+                // Shuffle and pick 3 random skills for production
+                const shuffled = availableKeys.sort(() => Math.random() - 0.5);
+                selectedSkillKeys = shuffled.slice(0, 3);
+                optionsEl.style.maxHeight = '';
+                optionsEl.style.overflowY = '';
+            }
             optionsEl.innerHTML = '';
 
             for (const key of selectedSkillKeys) {
@@ -4892,6 +4935,1229 @@
             ctx.restore();
         }
 
+        // =============================================
+        // EARTHQUAKE EFFECT - Ground slam with cracks
+        // =============================================
+        let earthquakeEffects = [];
+        function spawnEarthquakeEffect(x, y, radius = 80) {
+            const cracks = [];
+            for (let i = 0; i < 8; i++) {
+                const angle = (i / 8) * Math.PI * 2 + Math.random() * 0.3;
+                const segments = [];
+                let px = x, py = y;
+                for (let j = 0; j < 5; j++) {
+                    const dist = (j + 1) * (radius / 5) * (0.8 + Math.random() * 0.4);
+                    const wobble = (Math.random() - 0.5) * 0.4;
+                    px = x + Math.cos(angle + wobble) * dist;
+                    py = y + Math.sin(angle + wobble) * dist;
+                    segments.push({ x: px, y: py });
+                }
+                cracks.push({ segments, delay: i * 2 });
+            }
+            const debris = [];
+            for (let i = 0; i < 20; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const dist = Math.random() * radius * 0.8;
+                debris.push({
+                    x: x + Math.cos(angle) * dist,
+                    y: y + Math.sin(angle) * dist,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: -Math.random() * 6 - 2,
+                    size: 3 + Math.random() * 5,
+                    rotation: Math.random() * Math.PI * 2,
+                    rotSpeed: (Math.random() - 0.5) * 0.3
+                });
+            }
+            earthquakeEffects.push({
+                x, y, radius,
+                cracks, debris,
+                life: 60,
+                shockwave: 0,
+                groundAlpha: 1
+            });
+        }
+        function updateEarthquakeEffects() {
+            for (let i = earthquakeEffects.length - 1; i >= 0; i--) {
+                const e = earthquakeEffects[i];
+                e.life--;
+                e.shockwave += 6;
+                e.groundAlpha = e.life / 60;
+                for (const d of e.debris) {
+                    d.x += d.vx;
+                    d.y += d.vy;
+                    d.vy += 0.3;
+                    d.rotation += d.rotSpeed;
+                }
+                if (e.life <= 0) earthquakeEffects.splice(i, 1);
+            }
+        }
+        function drawEarthquakeEffects() {
+            ctx.save();
+            for (const e of earthquakeEffects) {
+                const alpha = e.groundAlpha;
+                // Shockwave ring
+                ctx.strokeStyle = `rgba(139, 69, 19, ${alpha * 0.6})`;
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(e.x, e.y, e.shockwave, 0, Math.PI * 2);
+                ctx.stroke();
+                // Ground cracks
+                ctx.strokeStyle = `rgba(60, 30, 10, ${alpha})`;
+                ctx.lineWidth = 3;
+                for (const crack of e.cracks) {
+                    if (e.life > 60 - crack.delay) continue;
+                    ctx.beginPath();
+                    ctx.moveTo(e.x, e.y);
+                    for (const seg of crack.segments) {
+                        ctx.lineTo(seg.x, seg.y);
+                    }
+                    ctx.stroke();
+                }
+                // Debris
+                ctx.fillStyle = `rgba(101, 67, 33, ${alpha})`;
+                for (const d of e.debris) {
+                    ctx.save();
+                    ctx.translate(d.x, d.y);
+                    ctx.rotate(d.rotation);
+                    ctx.fillRect(-d.size/2, -d.size/2, d.size, d.size);
+                    ctx.restore();
+                }
+                // Center impact
+                ctx.fillStyle = `rgba(139, 69, 19, ${alpha * 0.8})`;
+                ctx.beginPath();
+                ctx.arc(e.x, e.y, 15 * alpha, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.font = '20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('🌋', e.x, e.y + 7);
+            }
+            ctx.restore();
+        }
+
+        // =============================================
+        // CHAIN LIGHTNING EFFECT - Arcing electricity
+        // =============================================
+        let chainLightningEffects = [];
+        function spawnChainLightningEffect(targets) {
+            if (targets.length < 2) return;
+            const chains = [];
+            for (let i = 0; i < targets.length - 1; i++) {
+                const start = targets[i];
+                const end = targets[i + 1];
+                const bolts = [];
+                for (let b = 0; b < 3; b++) {
+                    const points = [{ x: start.x, y: start.y }];
+                    const segments = 6;
+                    for (let j = 1; j < segments; j++) {
+                        const t = j / segments;
+                        const baseX = start.x + (end.x - start.x) * t;
+                        const baseY = start.y + (end.y - start.y) * t;
+                        const perpX = -(end.y - start.y);
+                        const perpY = end.x - start.x;
+                        const len = Math.hypot(perpX, perpY);
+                        const offset = (Math.random() - 0.5) * 25;
+                        points.push({
+                            x: baseX + (perpX / len) * offset,
+                            y: baseY + (perpY / len) * offset
+                        });
+                    }
+                    points.push({ x: end.x, y: end.y });
+                    bolts.push(points);
+                }
+                chains.push({ bolts, delay: i * 5 });
+            }
+            const sparks = [];
+            for (const t of targets) {
+                for (let i = 0; i < 8; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    sparks.push({
+                        x: t.x, y: t.y,
+                        vx: Math.cos(angle) * (2 + Math.random() * 3),
+                        vy: Math.sin(angle) * (2 + Math.random() * 3),
+                        life: 20 + Math.random() * 20
+                    });
+                }
+            }
+            chainLightningEffects.push({
+                chains, sparks, targets,
+                life: 45,
+                flickerTimer: 0
+            });
+        }
+        function updateChainLightningEffects() {
+            for (let i = chainLightningEffects.length - 1; i >= 0; i--) {
+                const e = chainLightningEffects[i];
+                e.life--;
+                e.flickerTimer++;
+                for (const s of e.sparks) {
+                    s.x += s.vx;
+                    s.y += s.vy;
+                    s.vx *= 0.95;
+                    s.vy *= 0.95;
+                    s.life--;
+                }
+                e.sparks = e.sparks.filter(s => s.life > 0);
+                if (e.life <= 0) chainLightningEffects.splice(i, 1);
+            }
+        }
+        function drawChainLightningEffects() {
+            ctx.save();
+            for (const e of chainLightningEffects) {
+                const alpha = Math.min(1, e.life / 20);
+                const flicker = Math.sin(e.flickerTimer * 0.5) * 0.3 + 0.7;
+                // Lightning bolts
+                for (const chain of e.chains) {
+                    if (e.life > 45 - chain.delay) continue;
+                    for (const bolt of chain.bolts) {
+                        ctx.strokeStyle = `rgba(0, 191, 255, ${alpha * flicker})`;
+                        ctx.lineWidth = 2;
+                        ctx.shadowColor = '#00bfff';
+                        ctx.shadowBlur = 15;
+                        ctx.beginPath();
+                        ctx.moveTo(bolt[0].x, bolt[0].y);
+                        for (let i = 1; i < bolt.length; i++) {
+                            ctx.lineTo(bolt[i].x, bolt[i].y);
+                        }
+                        ctx.stroke();
+                    }
+                    // Bright core
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * flicker * 0.8})`;
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(chain.bolts[0][0].x, chain.bolts[0][0].y);
+                    for (let i = 1; i < chain.bolts[0].length; i++) {
+                        ctx.lineTo(chain.bolts[0][i].x, chain.bolts[0][i].y);
+                    }
+                    ctx.stroke();
+                }
+                ctx.shadowBlur = 0;
+                // Sparks
+                ctx.fillStyle = `rgba(135, 206, 250, ${alpha})`;
+                for (const s of e.sparks) {
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                // Impact icons at targets
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                for (const t of e.targets) {
+                    ctx.globalAlpha = alpha;
+                    ctx.fillText('⚡', t.x, t.y);
+                }
+            }
+            ctx.restore();
+        }
+
+        // =============================================
+        // VOID RIFT EFFECT - Swirling dark portal
+        // =============================================
+        let voidRiftEffects = [];
+        function spawnVoidRiftEffect(x, y, duration = 240) {
+            const particles = [];
+            for (let i = 0; i < 40; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 60 + Math.random() * 40;
+                particles.push({
+                    angle, dist, startDist: dist,
+                    size: 2 + Math.random() * 4,
+                    speed: 0.02 + Math.random() * 0.03,
+                    pullSpeed: 0.3 + Math.random() * 0.2
+                });
+            }
+            voidRiftEffects.push({
+                x, y, particles,
+                life: duration,
+                maxLife: duration,
+                rotation: 0,
+                pulsePhase: 0
+            });
+        }
+        function updateVoidRiftEffects() {
+            for (let i = voidRiftEffects.length - 1; i >= 0; i--) {
+                const e = voidRiftEffects[i];
+                e.life--;
+                e.rotation += 0.05;
+                e.pulsePhase += 0.1;
+                for (const p of e.particles) {
+                    p.angle += p.speed;
+                    p.dist = Math.max(5, p.dist - p.pullSpeed);
+                    if (p.dist < 10) {
+                        p.dist = p.startDist;
+                        p.angle = Math.random() * Math.PI * 2;
+                    }
+                }
+                if (e.life <= 0) voidRiftEffects.splice(i, 1);
+            }
+        }
+        function drawVoidRiftEffects() {
+            ctx.save();
+            for (const e of voidRiftEffects) {
+                const alpha = Math.min(1, e.life / 30, (e.maxLife - e.life) / 30 + 0.3);
+                const pulse = Math.sin(e.pulsePhase) * 0.2 + 0.8;
+                // Outer glow
+                const gradient = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, 60);
+                gradient.addColorStop(0, `rgba(74, 0, 128, ${alpha * 0.8})`);
+                gradient.addColorStop(0.5, `rgba(74, 0, 128, ${alpha * 0.4})`);
+                gradient.addColorStop(1, `rgba(74, 0, 128, 0)`);
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(e.x, e.y, 60, 0, Math.PI * 2);
+                ctx.fill();
+                // Swirling particles
+                for (const p of e.particles) {
+                    const px = e.x + Math.cos(p.angle + e.rotation) * p.dist;
+                    const py = e.y + Math.sin(p.angle + e.rotation) * p.dist;
+                    const distRatio = p.dist / p.startDist;
+                    ctx.fillStyle = `rgba(147, 112, 219, ${alpha * distRatio})`;
+                    ctx.beginPath();
+                    ctx.arc(px, py, p.size * pulse, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                // Dark center
+                ctx.fillStyle = `rgba(20, 0, 40, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(e.x, e.y, 15 * pulse, 0, Math.PI * 2);
+                ctx.fill();
+                // Spiral arms
+                ctx.strokeStyle = `rgba(138, 43, 226, ${alpha * 0.6})`;
+                ctx.lineWidth = 2;
+                for (let arm = 0; arm < 3; arm++) {
+                    ctx.beginPath();
+                    for (let t = 0; t < 50; t++) {
+                        const angle = e.rotation + arm * (Math.PI * 2 / 3) + t * 0.15;
+                        const r = 5 + t * 1.2;
+                        const px = e.x + Math.cos(angle) * r;
+                        const py = e.y + Math.sin(angle) * r;
+                        if (t === 0) ctx.moveTo(px, py);
+                        else ctx.lineTo(px, py);
+                    }
+                    ctx.stroke();
+                }
+                ctx.font = '18px Arial';
+                ctx.textAlign = 'center';
+                ctx.globalAlpha = alpha;
+                ctx.fillText('🌀', e.x, e.y + 6);
+            }
+            ctx.restore();
+        }
+
+        // =============================================
+        // FIRE BREATH EFFECT - Cone of flames
+        // =============================================
+        let fireBreathEffects = [];
+        function spawnFireBreathEffect(x, y, angle, range = 80) {
+            const flames = [];
+            for (let i = 0; i < 30; i++) {
+                const spreadAngle = angle + (Math.random() - 0.5) * 1.0;
+                const dist = Math.random() * range;
+                flames.push({
+                    x: x + Math.cos(spreadAngle) * dist,
+                    y: y + Math.sin(spreadAngle) * dist,
+                    vx: Math.cos(spreadAngle) * (3 + Math.random() * 2),
+                    vy: Math.sin(spreadAngle) * (3 + Math.random() * 2),
+                    size: 8 + Math.random() * 12,
+                    life: 30 + Math.random() * 20,
+                    hue: Math.random() * 40 // 0 = red, 40 = orange
+                });
+            }
+            fireBreathEffects.push({
+                x, y, angle, range, flames,
+                life: 50,
+                coneAlpha: 1
+            });
+        }
+        function updateFireBreathEffects() {
+            for (let i = fireBreathEffects.length - 1; i >= 0; i--) {
+                const e = fireBreathEffects[i];
+                e.life--;
+                e.coneAlpha = e.life / 50;
+                for (const f of e.flames) {
+                    f.x += f.vx;
+                    f.y += f.vy;
+                    f.vy -= 0.05; // Fire rises
+                    f.vx *= 0.98;
+                    f.vy *= 0.98;
+                    f.size *= 0.97;
+                    f.life--;
+                }
+                e.flames = e.flames.filter(f => f.life > 0 && f.size > 1);
+                if (e.life <= 0) fireBreathEffects.splice(i, 1);
+            }
+        }
+        function drawFireBreathEffects() {
+            ctx.save();
+            for (const e of fireBreathEffects) {
+                // Cone shape
+                ctx.fillStyle = `rgba(255, 100, 0, ${e.coneAlpha * 0.2})`;
+                ctx.beginPath();
+                ctx.moveTo(e.x, e.y);
+                ctx.arc(e.x, e.y, e.range, e.angle - 0.5, e.angle + 0.5);
+                ctx.closePath();
+                ctx.fill();
+                // Flame particles
+                for (const f of e.flames) {
+                    const alpha = f.life / 50;
+                    const gradient = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.size);
+                    gradient.addColorStop(0, `rgba(255, 255, 100, ${alpha})`);
+                    gradient.addColorStop(0.3, `hsla(${f.hue}, 100%, 50%, ${alpha})`);
+                    gradient.addColorStop(1, `rgba(255, 0, 0, 0)`);
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(f.x, f.y, f.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                // Source icon
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.globalAlpha = e.coneAlpha;
+                ctx.fillText('🔥', e.x, e.y + 5);
+            }
+            ctx.restore();
+        }
+
+        // =============================================
+        // ICE NOVA EFFECT - Freezing burst
+        // =============================================
+        let iceNovaEffects = [];
+        function spawnIceNovaEffect(x, y, radius = 100) {
+            const icicles = [];
+            for (let i = 0; i < 12; i++) {
+                const angle = (i / 12) * Math.PI * 2;
+                icicles.push({
+                    angle,
+                    length: 0,
+                    maxLength: radius * (0.7 + Math.random() * 0.3),
+                    width: 4 + Math.random() * 4
+                });
+            }
+            const snowflakes = [];
+            for (let i = 0; i < 25; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const dist = Math.random() * radius;
+                snowflakes.push({
+                    x: x + Math.cos(angle) * dist,
+                    y: y + Math.sin(angle) * dist,
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: Math.random() * 2,
+                    rotation: Math.random() * Math.PI * 2,
+                    rotSpeed: (Math.random() - 0.5) * 0.2,
+                    size: 8 + Math.random() * 8
+                });
+            }
+            iceNovaEffects.push({
+                x, y, radius, icicles, snowflakes,
+                life: 60,
+                ring: 0
+            });
+        }
+        function updateIceNovaEffects() {
+            for (let i = iceNovaEffects.length - 1; i >= 0; i--) {
+                const e = iceNovaEffects[i];
+                e.life--;
+                e.ring += 8;
+                for (const ic of e.icicles) {
+                    if (ic.length < ic.maxLength) {
+                        ic.length += ic.maxLength / 10;
+                    }
+                }
+                for (const sf of e.snowflakes) {
+                    sf.x += sf.vx;
+                    sf.y += sf.vy;
+                    sf.rotation += sf.rotSpeed;
+                }
+                if (e.life <= 0) iceNovaEffects.splice(i, 1);
+            }
+        }
+        function drawIceNovaEffects() {
+            ctx.save();
+            for (const e of iceNovaEffects) {
+                const alpha = e.life / 60;
+                // Expanding ring
+                ctx.strokeStyle = `rgba(135, 206, 235, ${alpha * 0.7})`;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(e.x, e.y, e.ring, 0, Math.PI * 2);
+                ctx.stroke();
+                // Icicles
+                ctx.fillStyle = `rgba(173, 216, 230, ${alpha})`;
+                ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+                ctx.lineWidth = 1;
+                for (const ic of e.icicles) {
+                    const endX = e.x + Math.cos(ic.angle) * ic.length;
+                    const endY = e.y + Math.sin(ic.angle) * ic.length;
+                    const perpAngle = ic.angle + Math.PI / 2;
+                    ctx.beginPath();
+                    ctx.moveTo(e.x + Math.cos(perpAngle) * ic.width, e.y + Math.sin(perpAngle) * ic.width);
+                    ctx.lineTo(endX, endY);
+                    ctx.lineTo(e.x - Math.cos(perpAngle) * ic.width, e.y - Math.sin(perpAngle) * ic.width);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+                }
+                // Snowflakes
+                ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.8})`;
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                for (const sf of e.snowflakes) {
+                    ctx.save();
+                    ctx.translate(sf.x, sf.y);
+                    ctx.rotate(sf.rotation);
+                    ctx.fillText('❄', 0, 0);
+                    ctx.restore();
+                }
+                // Center burst
+                ctx.font = '24px Arial';
+                ctx.globalAlpha = alpha;
+                ctx.fillText('❄️', e.x, e.y + 8);
+            }
+            ctx.restore();
+        }
+
+        // =============================================
+        // SHADOW STEP EFFECT - Stealth shimmer
+        // =============================================
+        let shadowStepEffects = [];
+        function spawnShadowStepEffect(x, y) {
+            const shadows = [];
+            for (let i = 0; i < 15; i++) {
+                shadows.push({
+                    x: x + (Math.random() - 0.5) * 30,
+                    y: y + (Math.random() - 0.5) * 30,
+                    size: 10 + Math.random() * 20,
+                    alpha: 0.5 + Math.random() * 0.5,
+                    drift: (Math.random() - 0.5) * 2
+                });
+            }
+            shadowStepEffects.push({
+                x, y, shadows,
+                life: 40,
+                fadeRing: 0
+            });
+        }
+        function spawnShadowStrikeEffect(x, y) {
+            // Effect when breaking stealth with an attack
+            const slashes = [];
+            for (let i = 0; i < 3; i++) {
+                const angle = -0.3 + i * 0.3;
+                slashes.push({
+                    x, y, angle,
+                    length: 0,
+                    maxLength: 40 + Math.random() * 20
+                });
+            }
+            shadowStepEffects.push({
+                x, y, slashes,
+                isStrike: true,
+                life: 30
+            });
+        }
+        function updateShadowStepEffects() {
+            for (let i = shadowStepEffects.length - 1; i >= 0; i--) {
+                const e = shadowStepEffects[i];
+                e.life--;
+                if (e.isStrike) {
+                    for (const s of e.slashes) {
+                        if (s.length < s.maxLength) s.length += s.maxLength / 5;
+                    }
+                } else {
+                    e.fadeRing += 3;
+                    for (const s of e.shadows) {
+                        s.y += s.drift;
+                        s.alpha *= 0.95;
+                    }
+                }
+                if (e.life <= 0) shadowStepEffects.splice(i, 1);
+            }
+        }
+        function drawShadowStepEffects() {
+            ctx.save();
+            for (const e of shadowStepEffects) {
+                const alpha = e.life / (e.isStrike ? 30 : 40);
+                if (e.isStrike) {
+                    // Shadow strike slashes
+                    ctx.strokeStyle = `rgba(44, 62, 80, ${alpha})`;
+                    ctx.lineWidth = 4;
+                    ctx.lineCap = 'round';
+                    for (const s of e.slashes) {
+                        const endX = s.x + Math.cos(s.angle) * s.length;
+                        const endY = s.y + Math.sin(s.angle) * s.length;
+                        ctx.beginPath();
+                        ctx.moveTo(s.x - Math.cos(s.angle) * 10, s.y - Math.sin(s.angle) * 10);
+                        ctx.lineTo(endX, endY);
+                        ctx.stroke();
+                    }
+                    ctx.font = '20px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.globalAlpha = alpha;
+                    ctx.fillText('🌑', e.x, e.y + 7);
+                } else {
+                    // Vanishing shadows
+                    for (const s of e.shadows) {
+                        ctx.fillStyle = `rgba(44, 62, 80, ${s.alpha * alpha})`;
+                        ctx.beginPath();
+                        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    // Fade ring
+                    ctx.strokeStyle = `rgba(44, 62, 80, ${alpha * 0.5})`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(e.x, e.y, e.fadeRing, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            }
+            ctx.restore();
+        }
+
+        // =============================================
+        // WAR CRY EFFECT - Terrifying shout
+        // =============================================
+        let warCryEffects = [];
+        function spawnWarCryEffect(x, y, radius = 100) {
+            const soundWaves = [];
+            for (let i = 0; i < 4; i++) {
+                soundWaves.push({ radius: 0, delay: i * 8 });
+            }
+            const exclamations = [];
+            for (let i = 0; i < 6; i++) {
+                const angle = (i / 6) * Math.PI * 2;
+                exclamations.push({
+                    x: x + Math.cos(angle) * 30,
+                    y: y + Math.sin(angle) * 30,
+                    vx: Math.cos(angle) * 2,
+                    vy: Math.sin(angle) * 2,
+                    rotation: (Math.random() - 0.5) * 0.5
+                });
+            }
+            warCryEffects.push({
+                x, y, radius, soundWaves, exclamations,
+                life: 50,
+                shake: 10
+            });
+        }
+        function updateWarCryEffects() {
+            for (let i = warCryEffects.length - 1; i >= 0; i--) {
+                const e = warCryEffects[i];
+                e.life--;
+                e.shake *= 0.9;
+                for (const sw of e.soundWaves) {
+                    if (sw.delay > 0) sw.delay--;
+                    else sw.radius += 5;
+                }
+                for (const ex of e.exclamations) {
+                    ex.x += ex.vx;
+                    ex.y += ex.vy;
+                }
+                if (e.life <= 0) warCryEffects.splice(i, 1);
+            }
+        }
+        function drawWarCryEffects() {
+            ctx.save();
+            for (const e of warCryEffects) {
+                const alpha = e.life / 50;
+                const shakeX = (Math.random() - 0.5) * e.shake;
+                const shakeY = (Math.random() - 0.5) * e.shake;
+                // Sound waves
+                for (const sw of e.soundWaves) {
+                    if (sw.delay > 0) continue;
+                    const waveAlpha = Math.max(0, 1 - sw.radius / e.radius) * alpha;
+                    ctx.strokeStyle = `rgba(192, 57, 43, ${waveAlpha})`;
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(e.x + shakeX, e.y + shakeY, sw.radius, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                // Exclamation marks
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = `rgba(192, 57, 43, ${alpha})`;
+                for (const ex of e.exclamations) {
+                    ctx.save();
+                    ctx.translate(ex.x, ex.y);
+                    ctx.rotate(ex.rotation);
+                    ctx.fillText('!', 0, 0);
+                    ctx.restore();
+                }
+                // Center icon
+                ctx.font = '22px Arial';
+                ctx.globalAlpha = alpha;
+                ctx.fillText('😱', e.x + shakeX, e.y + shakeY + 7);
+            }
+            ctx.restore();
+        }
+
+        // =============================================
+        // HEALING AURA EFFECT - Green restoration glow
+        // =============================================
+        let healingAuraEffects = [];
+        function spawnHealingAuraEffect(x, y, radius = 80, targets = []) {
+            const hearts = [];
+            for (let i = 0; i < 12; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const dist = Math.random() * radius;
+                hearts.push({
+                    x: x + Math.cos(angle) * dist,
+                    y: y + Math.sin(angle) * dist,
+                    vy: -1 - Math.random() * 2,
+                    size: 10 + Math.random() * 8,
+                    wobble: Math.random() * Math.PI * 2
+                });
+            }
+            const beams = [];
+            for (const t of targets) {
+                beams.push({ targetX: t.x, targetY: t.y, progress: 0 });
+            }
+            healingAuraEffects.push({
+                x, y, radius, hearts, beams,
+                life: 60,
+                pulsePhase: 0
+            });
+        }
+        function updateHealingAuraEffects() {
+            for (let i = healingAuraEffects.length - 1; i >= 0; i--) {
+                const e = healingAuraEffects[i];
+                e.life--;
+                e.pulsePhase += 0.15;
+                for (const h of e.hearts) {
+                    h.y += h.vy;
+                    h.wobble += 0.1;
+                    h.x += Math.sin(h.wobble) * 0.5;
+                }
+                for (const b of e.beams) {
+                    if (b.progress < 1) b.progress += 0.1;
+                }
+                if (e.life <= 0) healingAuraEffects.splice(i, 1);
+            }
+        }
+        function drawHealingAuraEffects() {
+            ctx.save();
+            for (const e of healingAuraEffects) {
+                const alpha = e.life / 60;
+                const pulse = Math.sin(e.pulsePhase) * 0.2 + 0.8;
+                // Aura glow
+                const gradient = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, e.radius * pulse);
+                gradient.addColorStop(0, `rgba(46, 204, 113, ${alpha * 0.4})`);
+                gradient.addColorStop(0.7, `rgba(46, 204, 113, ${alpha * 0.2})`);
+                gradient.addColorStop(1, `rgba(46, 204, 113, 0)`);
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(e.x, e.y, e.radius * pulse, 0, Math.PI * 2);
+                ctx.fill();
+                // Healing beams to targets
+                ctx.strokeStyle = `rgba(46, 204, 113, ${alpha * 0.7})`;
+                ctx.lineWidth = 3;
+                for (const b of e.beams) {
+                    const endX = e.x + (b.targetX - e.x) * b.progress;
+                    const endY = e.y + (b.targetY - e.y) * b.progress;
+                    ctx.beginPath();
+                    ctx.moveTo(e.x, e.y);
+                    ctx.lineTo(endX, endY);
+                    ctx.stroke();
+                }
+                // Floating hearts
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = `rgba(46, 204, 113, ${alpha})`;
+                for (const h of e.hearts) {
+                    ctx.globalAlpha = alpha;
+                    ctx.fillText('💚', h.x, h.y);
+                }
+                // Center icon
+                ctx.font = '20px Arial';
+                ctx.globalAlpha = alpha;
+                ctx.fillText('💚', e.x, e.y + 7);
+            }
+            ctx.restore();
+        }
+
+        // =============================================
+        // METEOR STRIKE EFFECT - Falling impact
+        // =============================================
+        let meteorStrikeEffects = [];
+        function spawnMeteorStrikeEffect(x, y, delay = 90) {
+            meteorStrikeEffects.push({
+                x, y,
+                life: delay + 60,
+                delay: delay,
+                meteorY: y - 400,
+                impacted: false,
+                craterSize: 0,
+                flames: [],
+                debris: []
+            });
+        }
+        function updateMeteorStrikeEffects() {
+            for (let i = meteorStrikeEffects.length - 1; i >= 0; i--) {
+                const e = meteorStrikeEffects[i];
+                e.life--;
+                if (e.delay > 0) {
+                    e.delay--;
+                } else if (!e.impacted) {
+                    e.meteorY += 20;
+                    if (e.meteorY >= e.y) {
+                        e.impacted = true;
+                        // Spawn impact debris
+                        for (let j = 0; j < 30; j++) {
+                            const angle = Math.random() * Math.PI * 2;
+                            e.debris.push({
+                                x: e.x, y: e.y,
+                                vx: Math.cos(angle) * (3 + Math.random() * 5),
+                                vy: Math.sin(angle) * (3 + Math.random() * 5) - 4,
+                                size: 3 + Math.random() * 6
+                            });
+                            e.flames.push({
+                                x: e.x + Math.cos(angle) * Math.random() * 50,
+                                y: e.y + Math.sin(angle) * Math.random() * 50,
+                                size: 15 + Math.random() * 20,
+                                life: 40
+                            });
+                        }
+                    }
+                } else {
+                    e.craterSize = Math.min(80, e.craterSize + 8);
+                    for (const d of e.debris) {
+                        d.x += d.vx;
+                        d.y += d.vy;
+                        d.vy += 0.3;
+                        d.vx *= 0.98;
+                    }
+                    for (const f of e.flames) {
+                        f.size *= 0.95;
+                        f.life--;
+                    }
+                    e.flames = e.flames.filter(f => f.life > 0);
+                }
+                if (e.life <= 0) meteorStrikeEffects.splice(i, 1);
+            }
+        }
+        function drawMeteorStrikeEffects() {
+            ctx.save();
+            for (const e of meteorStrikeEffects) {
+                const alpha = Math.min(1, e.life / 30);
+                if (!e.impacted) {
+                    // Warning circle
+                    const warningAlpha = Math.sin(Date.now() * 0.01) * 0.3 + 0.5;
+                    ctx.strokeStyle = `rgba(231, 76, 60, ${warningAlpha})`;
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([10, 5]);
+                    ctx.beginPath();
+                    ctx.arc(e.x, e.y, 60, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    // Falling meteor
+                    if (e.delay <= 0) {
+                        const gradient = ctx.createRadialGradient(e.x, e.meteorY, 0, e.x, e.meteorY, 25);
+                        gradient.addColorStop(0, '#ffff00');
+                        gradient.addColorStop(0.3, '#ff6600');
+                        gradient.addColorStop(1, '#cc0000');
+                        ctx.fillStyle = gradient;
+                        ctx.beginPath();
+                        ctx.arc(e.x, e.meteorY, 20, 0, Math.PI * 2);
+                        ctx.fill();
+                        // Trail
+                        ctx.fillStyle = 'rgba(255, 100, 0, 0.5)';
+                        ctx.beginPath();
+                        ctx.moveTo(e.x - 15, e.meteorY);
+                        ctx.lineTo(e.x, e.meteorY - 100);
+                        ctx.lineTo(e.x + 15, e.meteorY);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.font = '28px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('☄️', e.x, e.meteorY + 10);
+                    }
+                } else {
+                    // Impact crater
+                    const craterGradient = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, e.craterSize);
+                    craterGradient.addColorStop(0, `rgba(50, 30, 20, ${alpha * 0.8})`);
+                    craterGradient.addColorStop(0.7, `rgba(100, 50, 30, ${alpha * 0.5})`);
+                    craterGradient.addColorStop(1, `rgba(150, 80, 50, 0)`);
+                    ctx.fillStyle = craterGradient;
+                    ctx.beginPath();
+                    ctx.arc(e.x, e.y, e.craterSize, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Flames
+                    for (const f of e.flames) {
+                        const fGradient = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.size);
+                        fGradient.addColorStop(0, `rgba(255, 200, 50, ${(f.life / 40) * alpha})`);
+                        fGradient.addColorStop(0.5, `rgba(255, 100, 0, ${(f.life / 40) * alpha * 0.7})`);
+                        fGradient.addColorStop(1, 'rgba(200, 50, 0, 0)');
+                        ctx.fillStyle = fGradient;
+                        ctx.beginPath();
+                        ctx.arc(f.x, f.y, f.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    // Debris
+                    ctx.fillStyle = `rgba(80, 50, 30, ${alpha})`;
+                    for (const d of e.debris) {
+                        ctx.beginPath();
+                        ctx.arc(d.x, d.y, d.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            }
+            ctx.restore();
+        }
+
+        // =============================================
+        // MIRROR IMAGE EFFECT - Clone illusions
+        // =============================================
+        let mirrorImageEffects = [];
+        function spawnMirrorImageEffect(x, y, ant) {
+            const mirrors = [];
+            for (let i = 0; i < 2; i++) {
+                const angle = (i === 0 ? -1 : 1) * (Math.PI / 4);
+                mirrors.push({
+                    x: x + Math.cos(angle) * 30,
+                    y: y + Math.sin(angle) * 30,
+                    angle: ant.angle,
+                    shimmerPhase: Math.random() * Math.PI * 2
+                });
+            }
+            mirrorImageEffects.push({
+                x, y, mirrors, sourceAnt: ant,
+                life: 40
+            });
+        }
+        function updateMirrorImageEffects() {
+            for (let i = mirrorImageEffects.length - 1; i >= 0; i--) {
+                const e = mirrorImageEffects[i];
+                e.life--;
+                for (const m of e.mirrors) {
+                    m.shimmerPhase += 0.2;
+                }
+                if (e.life <= 0) mirrorImageEffects.splice(i, 1);
+            }
+        }
+        function drawMirrorImageEffects() {
+            ctx.save();
+            for (const e of mirrorImageEffects) {
+                const alpha = e.life / 40;
+                for (const m of e.mirrors) {
+                    const shimmer = Math.sin(m.shimmerPhase) * 0.3 + 0.5;
+                    // Ghost ant silhouette
+                    ctx.fillStyle = `rgba(155, 89, 182, ${alpha * shimmer})`;
+                    ctx.save();
+                    ctx.translate(m.x, m.y);
+                    ctx.rotate(m.angle);
+                    // Body
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, 8, 5, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Head
+                    ctx.beginPath();
+                    ctx.arc(7, 0, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                    // Shimmer particles
+                    ctx.fillStyle = `rgba(200, 150, 255, ${alpha * 0.5})`;
+                    for (let i = 0; i < 3; i++) {
+                        const px = m.x + (Math.random() - 0.5) * 20;
+                        const py = m.y + (Math.random() - 0.5) * 20;
+                        ctx.beginPath();
+                        ctx.arc(px, py, 2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.globalAlpha = alpha;
+                ctx.fillText('🪞', e.x, e.y + 5);
+            }
+            ctx.restore();
+        }
+
+        // =============================================
+        // MIRROR DECOYS - Global array of decoy entities that can take damage
+        // =============================================
+        let mirrorDecoys = [];
+
+        function spawnMirrorDecoy(x, y, sourceAnt) {
+            const hp = Math.floor(sourceAnt.maxHp * 0.2);
+            mirrorDecoys.push({
+                x, y,
+                currentHp: hp,
+                maxHp: hp,
+                sourceAnt: sourceAnt,
+                angle: sourceAnt.angle,
+                color: sourceAnt.color,
+                sizeMultiplier: sourceAnt.sizeMultiplier,
+                spawnTime: Date.now(),
+                duration: 6000,
+                shimmerPhase: Math.random() * Math.PI * 2
+            });
+        }
+
+        function updateMirrorDecoys() {
+            const now = Date.now();
+            for (let i = mirrorDecoys.length - 1; i >= 0; i--) {
+                const decoy = mirrorDecoys[i];
+                decoy.shimmerPhase += 0.1;
+
+                // Remove if expired or dead
+                if (now - decoy.spawnTime >= decoy.duration || decoy.currentHp <= 0) {
+                    // Spawn poof effect when removed
+                    spawnMirrorImageEffect(decoy.x, decoy.y, { angle: decoy.angle });
+                    mirrorDecoys.splice(i, 1);
+                }
+            }
+        }
+
+        function drawMirrorDecoys() {
+            ctx.save();
+            for (const decoy of mirrorDecoys) {
+                const timeLeft = decoy.duration - (Date.now() - decoy.spawnTime);
+                const fadeAlpha = Math.min(1, timeLeft / 1000); // Fade in last second
+                const shimmer = Math.sin(decoy.shimmerPhase) * 0.15 + 0.5;
+
+                ctx.save();
+                ctx.translate(decoy.x, decoy.y);
+                ctx.rotate(decoy.angle);
+                ctx.globalAlpha = shimmer * fadeAlpha;
+
+                const size = CONFIG.antSize * decoy.sizeMultiplier * 0.95;
+
+                // Ghost purple tint
+                ctx.fillStyle = `rgba(155, 89, 182, 0.7)`;
+                ctx.strokeStyle = `rgba(200, 150, 255, 0.8)`;
+                ctx.lineWidth = 1;
+
+                // Abdomen
+                ctx.beginPath();
+                ctx.ellipse(-size * 0.55, 0, size * 0.5, size * 0.35, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                // Thorax
+                ctx.beginPath();
+                ctx.ellipse(0, 0, size * 0.35, size * 0.25, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                // Head
+                ctx.beginPath();
+                ctx.arc(size * 0.5, 0, size * 0.22, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.restore();
+
+                // HP bar above decoy
+                const hpPercent = decoy.currentHp / decoy.maxHp;
+                const barWidth = 20;
+                const barHeight = 3;
+                ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                ctx.fillRect(decoy.x - barWidth/2, decoy.y - 18, barWidth, barHeight);
+                ctx.fillStyle = hpPercent > 0.5 ? '#9b59b6' : '#e74c3c';
+                ctx.fillRect(decoy.x - barWidth/2, decoy.y - 18, barWidth * hpPercent, barHeight);
+
+                // Shimmer particles
+                ctx.fillStyle = `rgba(200, 150, 255, ${shimmer * fadeAlpha * 0.4})`;
+                for (let i = 0; i < 2; i++) {
+                    const px = decoy.x + (Math.random() - 0.5) * 25;
+                    const py = decoy.y + (Math.random() - 0.5) * 25;
+                    ctx.beginPath();
+                    ctx.arc(px, py, 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+            ctx.restore();
+        }
+
+        function checkMirrorDecoyCombat() {
+            const COMBAT_RANGE = 20;
+            const allPredators = [...spiderPredators, ...beetlePredators];
+
+            for (const decoy of mirrorDecoys) {
+                if (decoy.currentHp <= 0) continue;
+
+                for (const predator of allPredators) {
+                    if (predator.state === 'stunned' || predator.state === 'dead') continue;
+                    if (predator.frozenTimer > 0) continue;
+
+                    const dist = Math.hypot(decoy.x - predator.x, decoy.y - predator.y);
+
+                    if (dist < COMBAT_RANGE) {
+                        // Predator attacks the decoy (decoy has 0 ATK so doesn't fight back)
+                        if (time - (predator.lastDecoyAttackTime || 0) >= 60) {
+                            predator.lastDecoyAttackTime = time;
+                            predator.fightingTimer = 60;
+
+                            const predatorAtk = predator.atk || 10;
+                            const damage = Math.max(1, predatorAtk);
+                            decoy.currentHp -= damage;
+
+                            // Face the decoy
+                            predator.angle = Math.atan2(decoy.y - predator.y, decoy.x - predator.x);
+
+                            spawnFloatingText(decoy.x, decoy.y - 15, `${Math.floor(damage)}`, '#9b59b6', 10);
+
+                            if (decoy.currentHp <= 0) {
+                                spawnFloatingText(decoy.x, decoy.y - 25, '💨 POOF!', '#9b59b6', 12, 90);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // =============================================
+        // BLINK EFFECT - Teleport flash
+        // =============================================
+        let blinkEffects = [];
+        function spawnBlinkEffect(startX, startY, endX, endY) {
+            const particles = [];
+            for (let i = 0; i < 15; i++) {
+                particles.push({
+                    x: startX,
+                    y: startY,
+                    targetX: endX + (Math.random() - 0.5) * 30,
+                    targetY: endY + (Math.random() - 0.5) * 30,
+                    progress: Math.random() * 0.3,
+                    size: 3 + Math.random() * 4
+                });
+            }
+            blinkEffects.push({
+                startX, startY, endX, endY,
+                particles,
+                life: 30,
+                startFlash: 1,
+                endFlash: 0
+            });
+        }
+        function updateBlinkEffects() {
+            for (let i = blinkEffects.length - 1; i >= 0; i--) {
+                const e = blinkEffects[i];
+                e.life--;
+                e.startFlash *= 0.85;
+                e.endFlash = Math.min(1, e.endFlash + 0.15);
+                for (const p of e.particles) {
+                    p.progress = Math.min(1, p.progress + 0.08);
+                    p.x = e.startX + (p.targetX - e.startX) * p.progress;
+                    p.y = e.startY + (p.targetY - e.startY) * p.progress;
+                }
+                if (e.life <= 0) blinkEffects.splice(i, 1);
+            }
+        }
+        function drawBlinkEffects() {
+            ctx.save();
+            for (const e of blinkEffects) {
+                const alpha = e.life / 30;
+                // Start flash
+                if (e.startFlash > 0.1) {
+                    ctx.fillStyle = `rgba(243, 156, 18, ${e.startFlash})`;
+                    ctx.beginPath();
+                    ctx.arc(e.startX, e.startY, 20 * e.startFlash, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                // Teleport particles
+                ctx.fillStyle = `rgba(243, 156, 18, ${alpha})`;
+                for (const p of e.particles) {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size * (1 - p.progress * 0.5), 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                // End flash
+                ctx.fillStyle = `rgba(243, 156, 18, ${e.endFlash * alpha})`;
+                ctx.beginPath();
+                ctx.arc(e.endX, e.endY, 25 * e.endFlash, 0, Math.PI * 2);
+                ctx.fill();
+                // Sparkle
+                ctx.font = '18px Arial';
+                ctx.textAlign = 'center';
+                ctx.globalAlpha = alpha;
+                ctx.fillText('✨', e.endX, e.endY + 6);
+            }
+            ctx.restore();
+        }
+
+        // =============================================
+        // SPIRIT LINK EFFECT - Connection chains
+        // =============================================
+        let spiritLinkEffects = [];
+        function spawnSpiritLinkEffect(sourceAnt, linkedAnts) {
+            const links = [];
+            for (const ant of linkedAnts) {
+                links.push({
+                    targetAnt: ant,
+                    pulsePhase: Math.random() * Math.PI * 2,
+                    particles: []
+                });
+                // Add flowing particles along each link
+                for (let i = 0; i < 5; i++) {
+                    links[links.length - 1].particles.push({
+                        progress: Math.random(),
+                        speed: 0.02 + Math.random() * 0.02
+                    });
+                }
+            }
+            spiritLinkEffects.push({
+                sourceAnt, links,
+                life: 360, // 6 seconds
+                maxLife: 360
+            });
+        }
+        function updateSpiritLinkEffects() {
+            for (let i = spiritLinkEffects.length - 1; i >= 0; i--) {
+                const e = spiritLinkEffects[i];
+                e.life--;
+                for (const link of e.links) {
+                    link.pulsePhase += 0.1;
+                    for (const p of link.particles) {
+                        p.progress += p.speed;
+                        if (p.progress > 1) p.progress = 0;
+                    }
+                }
+                // Remove links to dead ants
+                e.links = e.links.filter(l => ants.includes(l.targetAnt));
+                if (e.life <= 0 || !ants.includes(e.sourceAnt)) {
+                    spiritLinkEffects.splice(i, 1);
+                }
+            }
+        }
+        function drawSpiritLinkEffects() {
+            ctx.save();
+            for (const e of spiritLinkEffects) {
+                if (!ants.includes(e.sourceAnt)) continue;
+                const alpha = Math.min(1, e.life / 30, (e.maxLife - e.life) / 30 + 0.5);
+                const srcX = e.sourceAnt.x;
+                const srcY = e.sourceAnt.y;
+                for (const link of e.links) {
+                    if (!ants.includes(link.targetAnt)) continue;
+                    const tgtX = link.targetAnt.x;
+                    const tgtY = link.targetAnt.y;
+                    const pulse = Math.sin(link.pulsePhase) * 0.3 + 0.7;
+                    // Link line
+                    ctx.strokeStyle = `rgba(26, 188, 156, ${alpha * pulse * 0.6})`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(srcX, srcY);
+                    ctx.lineTo(tgtX, tgtY);
+                    ctx.stroke();
+                    // Flowing particles
+                    ctx.fillStyle = `rgba(26, 188, 156, ${alpha})`;
+                    for (const p of link.particles) {
+                        const px = srcX + (tgtX - srcX) * p.progress;
+                        const py = srcY + (tgtY - srcY) * p.progress;
+                        ctx.beginPath();
+                        ctx.arc(px, py, 3, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+                // Source glow
+                ctx.fillStyle = `rgba(26, 188, 156, ${alpha * 0.3})`;
+                ctx.beginPath();
+                ctx.arc(srcX, srcY, 15, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.globalAlpha = alpha;
+                ctx.fillText('🔗', srcX, srcY - 15);
+            }
+            ctx.restore();
+        }
+
         function updateFloatingTexts() {
             for (let i = floatingTexts.length - 1; i >= 0; i--) {
                 const ft = floatingTexts[i];
@@ -5411,19 +6677,11 @@
             },
             ironShell: {
                 name: 'Iron Shell',
-                description: 'Take 50% less damage when below 30% HP',
+                description: 'Block every other hit when below 30% HP',
                 icon: '🛡️',
                 type: 'passive',
                 cooldown: 0,
                 color: '#74b9ff'
-            },
-            goldRush: {
-                name: 'Gold Rush',
-                description: '+3 gold per kill',
-                icon: '💰',
-                type: 'passive',
-                cooldown: 0,
-                color: '#ffd700'
             },
             vampireBite: {
                 name: 'Vampire Bite',
@@ -5459,7 +6717,7 @@
             },
             thorns: {
                 name: 'Thorns',
-                description: 'Reflect 30% of damage taken back to attacker',
+                description: 'Reflect 30% of damage taken back to attacker (min 1)',
                 icon: '🌵',
                 type: 'passive',
                 cooldown: 0,
@@ -5483,7 +6741,7 @@
             },
             scavenger: {
                 name: 'Scavenger',
-                description: '+25% XP from all sources',
+                description: '+1 bonus XP every time you gain any XP',
                 icon: '🦴',
                 type: 'passive',
                 cooldown: 0,
@@ -5499,7 +6757,7 @@
             },
             pathfinder: {
                 name: 'Pathfinder',
-                description: '+50% detection range, lay 2x stronger pheromone trails',
+                description: '+100% detection range, lay 2x stronger pheromone trails',
                 icon: '🧭',
                 type: 'passive',
                 cooldown: 0,
@@ -5507,7 +6765,7 @@
             },
             momentum: {
                 name: 'Momentum',
-                description: '+5% SPD per delivery, stacks up to 10 times',
+                description: '+5% SPD per delivery, stacks up to 20 times',
                 icon: '💨',
                 type: 'passive',
                 cooldown: 0,
@@ -5515,7 +6773,7 @@
             },
             bloodlust: {
                 name: 'Bloodlust',
-                description: '+1 ATK per kill, permanent stacking',
+                description: '+2 ATK per kill, permanent stacking',
                 icon: '🩸',
                 type: 'passive',
                 cooldown: 0,
@@ -5539,7 +6797,7 @@
             },
             lastStand: {
                 name: 'Last Stand',
-                description: '3x damage when below 20% HP',
+                description: '3x damage when below 50% HP',
                 icon: '💀',
                 type: 'passive',
                 cooldown: 0,
@@ -5547,7 +6805,7 @@
             },
             lucky: {
                 name: 'Lucky',
-                description: '10% chance for double gold from kills',
+                description: '50% chance for double gold from kills',
                 icon: '🍀',
                 type: 'passive',
                 cooldown: 0,
@@ -5568,6 +6826,102 @@
                 type: 'active',
                 cooldown: 6000,
                 color: '#ec87c0'
+            },
+            earthquake: {
+                name: 'Earthquake',
+                description: 'Slam the ground, dealing 5 damage to all enemies in range and slowing them 50% for 3s',
+                icon: '🌋',
+                type: 'active',
+                cooldown: 18000,
+                color: '#8b4513'
+            },
+            chainLightning: {
+                name: 'Chain Lightning',
+                description: 'Lightning bounces between up to 4 enemies, dealing 3 damage each',
+                icon: '⛈️',
+                type: 'active',
+                cooldown: 12000,
+                color: '#00bfff'
+            },
+            voidRift: {
+                name: 'Void Rift',
+                description: 'Open a portal that pulls enemies toward it and deals 2 damage/sec for 4s',
+                icon: '🌀',
+                type: 'active',
+                cooldown: 25000,
+                color: '#4a0080'
+            },
+            fireBreath: {
+                name: 'Fire Breath',
+                description: 'Breathe a cone of fire dealing 4 damage and applying burn (2 dmg/sec for 3s)',
+                icon: '🔥',
+                type: 'active',
+                cooldown: 14000,
+                color: '#ff4500'
+            },
+            iceNova: {
+                name: 'Ice Nova',
+                description: 'Freeze all nearby enemies solid for 3 seconds',
+                icon: '❄️',
+                type: 'active',
+                cooldown: 20000,
+                color: '#87ceeb'
+            },
+            shadowStep: {
+                name: 'Shadow Step',
+                description: 'Become invisible for 4s, next attack deals 3x damage and breaks stealth',
+                icon: '🌑',
+                type: 'active',
+                cooldown: 16000,
+                color: '#2c3e50'
+            },
+            warCry: {
+                name: 'War Cry',
+                description: 'Terrify enemies, making them flee for 3s. Radius scales with DET.',
+                icon: '😱',
+                type: 'active',
+                cooldown: 22000,
+                color: '#c0392b'
+            },
+            healingAura: {
+                name: 'Healing Aura',
+                description: 'Heal all nearby allies for 30% of their max HP',
+                icon: '💚',
+                type: 'active',
+                cooldown: 25000,
+                color: '#2ecc71'
+            },
+            meteorStrike: {
+                name: 'Meteor Strike',
+                description: 'Call down a meteor dealing 10 damage in a huge area after 1.5s delay',
+                icon: '☄️',
+                type: 'active',
+                cooldown: 30000,
+                color: '#e74c3c'
+            },
+            mirrorImage: {
+                name: 'Mirror Image',
+                description: 'Blink back and create 2 decoy copies with 20% HP each that draw enemy attacks',
+                icon: '🪞',
+                type: 'active',
+                cooldown: 24000,
+                color: '#9b59b6'
+            },
+            blink: {
+                name: 'Blink',
+                description: 'Instantly teleport to a random nearby enemy and stun it for 1.5s',
+                icon: '✨',
+                type: 'active',
+                cooldown: 10000,
+                color: '#f39c12'
+            },
+            spiritLink: {
+                name: 'Spirit Link',
+                description: 'Link with allies within DET×2 range - damage split evenly for 6s. Triggers when any ally is in combat.',
+                icon: '🔗',
+                type: 'active',
+                cooldown: 20000,
+                color: '#1abc9c'
             }
         };
 
@@ -5683,44 +7037,49 @@
             const spiderSkill = getPredatorSkillForWave(predatorWave, 'spider');
             const beetleSkill = getPredatorSkillForWave(predatorWave, 'beetle');
 
-            // Spawn one more of each predator type with scaled stats
-            const newSpider = new Spider();
-            // Offset position slightly
-            newSpider.x += (Math.random() - 0.5) * 50;
-            newSpider.y += (Math.random() - 0.5) * 50;
-            // Apply wave scaling
-            newSpider.maxHp = Math.floor(newSpider.maxHp * multiplier);
-            newSpider.currentHp = newSpider.maxHp;
-            newSpider.atk = Math.floor(newSpider.atk * multiplier);
-            newSpider.def = Math.floor(newSpider.def * multiplier);
-            newSpider.wave = predatorWave;
-            newSpider.skill = spiderSkill;
-            spiderPredators.push(newSpider);
+            // Spawn predatorWave number of each type (wave 1 = 1, wave 2 = 2, etc.)
+            const spawnCount = predatorWave;
 
-            const newBeetle = new Beetle();
-            newBeetle.x += (Math.random() - 0.5) * 50;
-            newBeetle.y += (Math.random() - 0.5) * 50;
-            // Apply wave scaling
-            newBeetle.maxHp = Math.floor(newBeetle.maxHp * multiplier);
-            newBeetle.currentHp = newBeetle.maxHp;
-            newBeetle.atk = Math.floor(newBeetle.atk * multiplier);
-            newBeetle.def = Math.floor(newBeetle.def * multiplier);
-            newBeetle.wave = predatorWave;
-            newBeetle.skill = beetleSkill;
-            beetlePredators.push(newBeetle);
+            for (let i = 0; i < spawnCount; i++) {
+                const newSpider = new Spider();
+                // Offset position to spread them out
+                newSpider.x += (Math.random() - 0.5) * 100;
+                newSpider.y += (Math.random() - 0.5) * 100;
+                // Apply wave scaling
+                newSpider.maxHp = Math.floor(newSpider.maxHp * multiplier);
+                newSpider.currentHp = newSpider.maxHp;
+                newSpider.atk = Math.floor(newSpider.atk * multiplier);
+                newSpider.def = Math.floor(newSpider.def * multiplier);
+                newSpider.wave = predatorWave;
+                newSpider.skill = spiderSkill;
+                spiderPredators.push(newSpider);
+
+                const newBeetle = new Beetle();
+                newBeetle.x += (Math.random() - 0.5) * 100;
+                newBeetle.y += (Math.random() - 0.5) * 100;
+                // Apply wave scaling
+                newBeetle.maxHp = Math.floor(newBeetle.maxHp * multiplier);
+                newBeetle.currentHp = newBeetle.maxHp;
+                newBeetle.atk = Math.floor(newBeetle.atk * multiplier);
+                newBeetle.def = Math.floor(newBeetle.def * multiplier);
+                newBeetle.wave = predatorWave;
+                newBeetle.skill = beetleSkill;
+                beetlePredators.push(newBeetle);
+            }
 
             // Show wave notification
             if (predatorWave >= 1) {
                 const waveColor = predatorWave >= 7 ? '#ff4757' : predatorWave >= 5 ? '#ffa502' : predatorWave >= 3 ? '#ffb464' : '#00ff88';
                 spawnFloatingText(width / 2, 80, `WAVE ${predatorWave}`, waveColor, 24, 180);
+                spawnFloatingText(width / 2, 110, `+${spawnCount * 2} enemies`, waveColor, 14, 180);
 
                 // Show skill unlock notification
                 if (spiderSkill && predatorWave === 3) {
-                    spawnFloatingText(width / 2, 110, 'Predators gained skills!', '#ff6b6b', 14, 180);
+                    spawnFloatingText(width / 2, 135, 'Predators gained skills!', '#ff6b6b', 14, 180);
                 } else if (spiderSkill && predatorWave === 5) {
-                    spawnFloatingText(width / 2, 110, 'Predators growing stronger!', '#ffa502', 14, 180);
+                    spawnFloatingText(width / 2, 135, 'Predators growing stronger!', '#ffa502', 14, 180);
                 } else if (spiderSkill && predatorWave === 7) {
-                    spawnFloatingText(width / 2, 110, 'ELITE PREDATORS!', '#ff4757', 16, 180);
+                    spawnFloatingText(width / 2, 135, 'ELITE PREDATORS!', '#ff4757', 16, 180);
                 }
             }
         }
@@ -7051,14 +8410,16 @@
             // Award XP to the killer ant
             if (killerAnt && killerAnt.isAlive && killerAnt.isAlive()) {
                 killerAnt.experience.predatorKills += xpReward;
+                // SCAVENGER: +1 bonus XP for predator kill
+                if (killerAnt.hasSkill('scavenger')) killerAnt.experience.scavengerBonus++;
                 killerAnt.checkLevelUp();
                 spawnFloatingText(killerAnt.x, killerAnt.y - 20, `+${xpReward * 5} XP`, '#00d4ff', 12, 90, killerAnt);
 
-                // BLOODLUST SKILL: +1 ATK per kill (permanent stacking)
-                if (killerAnt.chosenSkill && killerAnt.skillKey === 'bloodlust') {
-                    killerAnt.bloodlustStacks++;
+                // BLOODLUST SKILL: +2 ATK per kill (permanent stacking)
+                if (killerAnt.hasSkill('bloodlust')) {
+                    killerAnt.bloodlustStacks += 2;
                     spawnBloodlustEffect(killerAnt.x, killerAnt.y, killerAnt.bloodlustStacks);
-                    spawnFloatingText(killerAnt.x, killerAnt.y - 40, `🩸 +1 ATK!`, '#da4453', 11, 90, killerAnt);
+                    spawnFloatingText(killerAnt.x, killerAnt.y - 40, `🩸 +2 ATK!`, '#da4453', 11, 90, killerAnt);
                 }
 
                 // SCAVENGER SKILL: Show XP bonus visual
@@ -7075,24 +8436,15 @@
                     goldDrop += 2;  // Gold Hunter bonus
                 }
 
-                // GOLD RUSH SKILL: +3 gold per kill for ants with this skill
-                const goldRushAnts = ants.filter(ant => ant.chosenSkill && ant.skillKey === 'goldRush');
-                if (goldRushAnts.length > 0) {
-                    const bonusGold = 3 * goldRushAnts.length;
-                    goldDrop += bonusGold;
-                    // Show gold burst effect
-                    spawnGoldBurst(predator.x, predator.y, bonusGold);
-                    spawnFloatingText(predator.x, predator.y - 40, `💰 GOLD RUSH +${bonusGold}!`, '#ffd700', 12);
-                }
-
-                // LUCKY SKILL: 10% chance for double gold
-                const luckyAnts = ants.filter(ant => ant.chosenSkill && ant.skillKey === 'lucky');
-                if (luckyAnts.length > 0 && Math.random() < 0.10 * luckyAnts.length) {
-                    goldDrop *= 2;
-                    // Show lucky effect on random lucky ant
-                    const luckyAnt = luckyAnts[Math.floor(Math.random() * luckyAnts.length)];
-                    spawnLuckyEffect(predator.x, predator.y);
-                    spawnFloatingText(predator.x, predator.y - 55, `🍀 LUCKY! 2x GOLD!`, '#8cc152', 14);
+                // LUCKY SKILL: 50% chance for double gold (per lucky ant)
+                const luckyAnts = ants.filter(ant => ant.hasSkill('lucky'));
+                for (const luckyAnt of luckyAnts) {
+                    if (Math.random() < 0.50) {
+                        goldDrop *= 2;
+                        spawnLuckyEffect(predator.x, predator.y);
+                        spawnFloatingText(predator.x, predator.y - 55, `🍀 LUCKY! 2x GOLD!`, '#8cc152', 14);
+                        break;  // Only double once per kill
+                    }
                 }
 
                 earnCoins(goldDrop);
@@ -7189,6 +8541,15 @@
                 this.lastAttackTime = 0;  // For 1 attack per second cooldown
                 this.fightingTimer = 0;   // Timer for standing still during combat
 
+                // New status effects
+                this.slowTimer = 0;       // Movement slow
+                this.burnTimer = 0;       // Burn damage over time
+                this.burnSource = null;   // Who applied the burn
+                this.frozenTimer = 0;     // Frozen solid
+                this.fearTimer = 0;       // Fleeing in fear
+                this.fearSourceX = 0;
+                this.fearSourceY = 0;
+
                 // Pokemon-style stats
                 this.maxHp = cfg.hp;
                 this.currentHp = cfg.hp;
@@ -7241,7 +8602,39 @@
 
                 if (this.state === 'stunned') {
                     this.stunTimer--;
+                    if (this.frozenTimer > 0) this.frozenTimer--;
                     if (this.stunTimer <= 0) this.state = 'hunting';
+                    return;
+                }
+
+                // Process burn damage
+                if (this.burnTimer > 0) {
+                    this.burnTimer--;
+                    if (this.burnTimer % 60 === 0) {  // 2 damage per second
+                        this.currentHp -= 2;
+                        spawnFloatingText(this.x, this.y - 15, '🔥 2', '#ff4500', 10, 60);
+                        if (this.currentHp <= 0) {
+                            removePredator(this, this.burnSource);
+                            return;
+                        }
+                    }
+                }
+
+                // Process slow
+                let slowMultiplier = 1;
+                if (this.slowTimer > 0) {
+                    this.slowTimer--;
+                    slowMultiplier = 0.5;
+                }
+
+                // Process fear - flee from source
+                if (this.fearTimer > 0) {
+                    this.fearTimer--;
+                    const fleeAngle = Math.atan2(this.y - this.fearSourceY, this.x - this.fearSourceX);
+                    this.x += Math.cos(fleeAngle) * this.speed * 1.5;
+                    this.y += Math.sin(fleeAngle) * this.speed * 1.5;
+                    this.angle = fleeAngle;
+                    this.legPhase += 0.4;
                     return;
                 }
 
@@ -7288,21 +8681,28 @@
                     if (nearestDist < cfg.killRadius && time - this.lastAttackTime >= 60) {
                         this.lastAttackTime = time;
 
-                        // Ambush skill: First attack deals double damage
-                        let tempAtk = this.atk;
-                        if (this.skill === 'ambush' && this.ambushReady) {
-                            this.atk = this.atk * 2;
-                            this.ambushReady = false;
-                            spawnFloatingText(this.x, this.y - 30, '🕷️ AMBUSH!', '#ff4757', 14, 90, this);
-                        }
+                        // If targeting decoy, don't try to kill real ant
+                        if (targetingDecoy) {
+                            // Decoy combat is handled by checkMirrorDecoyCombat()
+                            // Just show attack animation
+                            spawnFloatingText(this.x, this.y - 20, '💨', '#9b59b6', 12, 60);
+                        } else if (nearestAnt) {
+                            // Ambush skill: First attack deals double damage
+                            let tempAtk = this.atk;
+                            if (this.skill === 'ambush' && this.ambushReady) {
+                                this.atk = this.atk * 2;
+                                this.ambushReady = false;
+                                spawnFloatingText(this.x, this.y - 30, '🕷️ AMBUSH!', '#ff4757', 14, 90, this);
+                            }
 
-                        if (killAnt(nearestAnt, this)) {
-                            this.state = 'eating';
-                            this.eatTimer = 60;
-                        }
+                            if (killAnt(nearestAnt, this)) {
+                                this.state = 'eating';
+                                this.eatTimer = 60;
+                            }
 
-                        // Restore original atk after ambush
-                        this.atk = tempAtk;
+                            // Restore original atk after ambush
+                            this.atk = tempAtk;
+                        }
                     }
                 } else {
                     // Wander freely across the entire map - pick new target frequently
@@ -7318,8 +8718,9 @@
                 const angleToTarget = Math.atan2(this.targetY - this.y, this.targetX - this.x);
                 this.angle = angleToTarget;
 
-                let newX = this.x + Math.cos(this.angle) * this.speed;
-                let newY = this.y + Math.sin(this.angle) * this.speed;
+                const actualSpeed = this.speed * speedBonus * slowMultiplier;
+                let newX = this.x + Math.cos(this.angle) * actualSpeed;
+                let newY = this.y + Math.sin(this.angle) * actualSpeed;
 
                 // Keep within screen bounds
                 const margin = 20;
@@ -7357,9 +8758,25 @@
                 const s = this.size;
                 const legWave = Math.sin(this.legPhase) * 0.3;
 
-                // Stun effect
+                // Stun/Frozen effect
                 if (this.state === 'stunned') {
                     ctx.globalAlpha = 0.5 + Math.sin(this.stunTimer * 0.3) * 0.3;
+                    // Frozen visual - icy blue overlay
+                    if (this.frozenTimer > 0) {
+                        ctx.fillStyle = 'rgba(135, 206, 235, 0.6)';
+                        ctx.beginPath();
+                        ctx.arc(0, 0, this.size * 1.2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                // Burn visual - fiery glow
+                if (this.burnTimer > 0) {
+                    const burnPulse = Math.sin(Date.now() / 100) * 0.3 + 0.7;
+                    ctx.fillStyle = `rgba(255, 100, 0, ${burnPulse * 0.4})`;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.size * 1.1, 0, Math.PI * 2);
+                    ctx.fill();
                 }
 
                 // Shadow
@@ -7494,6 +8911,15 @@
                 this.lastAttackTime = 0;  // For 1 attack per second cooldown
                 this.fightingTimer = 0;   // Timer for standing still during combat
 
+                // New status effects
+                this.slowTimer = 0;       // Movement slow
+                this.burnTimer = 0;       // Burn damage over time
+                this.burnSource = null;   // Who applied the burn
+                this.frozenTimer = 0;     // Frozen solid
+                this.fearTimer = 0;       // Fleeing in fear
+                this.fearSourceX = 0;
+                this.fearSourceY = 0;
+
                 // Pokemon-style stats
                 this.maxHp = cfg.hp;
                 this.currentHp = cfg.hp;
@@ -7545,7 +8971,39 @@
 
                 if (this.state === 'stunned') {
                     this.stunTimer--;
+                    if (this.frozenTimer > 0) this.frozenTimer--;
                     if (this.stunTimer <= 0) this.state = 'patrolling';
+                    return;
+                }
+
+                // Process burn damage
+                if (this.burnTimer > 0) {
+                    this.burnTimer--;
+                    if (this.burnTimer % 60 === 0) {  // 2 damage per second
+                        this.currentHp -= 2;
+                        spawnFloatingText(this.x, this.y - 15, '🔥 2', '#ff4500', 10, 60);
+                        if (this.currentHp <= 0) {
+                            removePredator(this, this.burnSource);
+                            return;
+                        }
+                    }
+                }
+
+                // Process slow
+                let slowMultiplier = 1;
+                if (this.slowTimer > 0) {
+                    this.slowTimer--;
+                    slowMultiplier = 0.5;
+                }
+
+                // Process fear - flee from source
+                if (this.fearTimer > 0) {
+                    this.fearTimer--;
+                    const fleeAngle = Math.atan2(this.y - this.fearSourceY, this.x - this.fearSourceX);
+                    this.x += Math.cos(fleeAngle) * cfg.speed * 1.5;
+                    this.y += Math.sin(fleeAngle) * cfg.speed * 1.5;
+                    this.angle = fleeAngle;
+                    this.legPhase += 0.25;
                     return;
                 }
 
@@ -7627,8 +9085,9 @@
                 const angleToTarget = Math.atan2(this.targetY - this.y, this.targetX - this.x);
                 this.angle = angleToTarget;
 
-                let newX = this.x + Math.cos(this.angle) * cfg.patrolSpeed;
-                let newY = this.y + Math.sin(this.angle) * cfg.patrolSpeed;
+                const actualSpeed = cfg.patrolSpeed * slowMultiplier;
+                let newX = this.x + Math.cos(this.angle) * actualSpeed;
+                let newY = this.y + Math.sin(this.angle) * actualSpeed;
 
                 // Keep within screen bounds
                 const margin = 20;
@@ -7677,6 +9136,22 @@
 
                 if (this.state === 'stunned') {
                     ctx.globalAlpha = 0.5 + Math.sin(this.stunTimer * 0.3) * 0.3;
+                    // Frozen visual - icy blue overlay
+                    if (this.frozenTimer > 0) {
+                        ctx.fillStyle = 'rgba(135, 206, 235, 0.6)';
+                        ctx.beginPath();
+                        ctx.arc(0, 0, this.size * 1.2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                // Burn visual - fiery glow
+                if (this.burnTimer > 0) {
+                    const burnPulse = Math.sin(Date.now() / 100) * 0.3 + 0.7;
+                    ctx.fillStyle = `rgba(255, 100, 0, ${burnPulse * 0.4})`;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.size * 1.1, 0, Math.PI * 2);
+                    ctx.fill();
                 }
 
                 // Shadow
@@ -7984,12 +9459,17 @@
                     zoneOccupied.delete(this.zoneSpot);
                 }
 
-                // Respawn food after cooldown when zone levels up
+                // Respawn food after cooldown
+                // - If leveled up: full cooldown
+                // - If max level (10): full cooldown (to prevent instant respawn spam)
+                // - Otherwise: quick respawn
                 const hasLeveledUp = newLevel > oldLevel;
-                const respawnDelay = hasLeveledUp ? ZONE_COOLDOWN_DURATION : 1000;
+                const isMaxLevel = newLevel >= 10;
+                const needsCooldown = hasLeveledUp || isMaxLevel;
+                const respawnDelay = needsCooldown ? ZONE_COOLDOWN_DURATION : 1000;
 
                 // Track cooldown for visual display
-                if (hasLeveledUp && respawnSpot !== null) {
+                if (needsCooldown && respawnSpot !== null) {
                     zoneCooldowns.set(respawnSpot, Date.now() + ZONE_COOLDOWN_DURATION);
                 }
 
@@ -8305,7 +9785,8 @@
                     predatorEscapes: 0,
                     foodDiscovered: 0,      // New: times this ant found food first
                     distanceTraveled: 0,    // New: total distance moved
-                    predatorKills: 0        // Kills give significant XP
+                    predatorKills: 0,       // Kills give significant XP
+                    scavengerBonus: 0       // Scavenger skill bonus XP
                 };
 
                 // Current level (starts at 1, no max)
@@ -8337,11 +9818,27 @@
 
                 // New skill properties
                 this.secondWindUsed = false;  // Second Wind can only trigger once
-                this.momentumStacks = 0;  // Momentum stacks (max 10)
+                this.momentumStacks = 0;  // Momentum stacks (max 20)
                 this.bloodlustStacks = 0;  // Bloodlust ATK stacks (permanent)
                 this.adrenalineActive = false;  // Adrenaline speed boost active
                 this.adrenalineEndTime = 0;  // When adrenaline wears off
                 this.lastStandTriggered = false;  // Last Stand visual shown this combat
+                this.ironShellCounter = 0;  // Iron Shell block counter (blocks every other hit)
+
+                // New skill state
+                this.voidRiftX = 0;
+                this.voidRiftY = 0;
+                this.voidRiftEndTime = 0;
+                this.shadowStepActive = false;
+                this.shadowStepEndTime = 0;
+                this.shadowStepBonusDamage = false;
+                this.meteorTarget = null;
+                this.meteorImpactTime = 0;
+                // Mirror Image now uses global mirrorDecoys array
+                this.spiritLinkActive = false;
+                this.spiritLinkEndTime = 0;
+                this.spiritLinkedAnts = [];
+                this.spiritLinkedTo = null;
 
                 // Pounce animation state
                 this.isPouncing = false;
@@ -8546,9 +10043,9 @@
                 const baseDetection = typeConfig.foodDetectRadius + (levelBonuses.foodDetectRadius || 0) * levelBonus;
                 this.foodDetectRadius = baseDetection * detectionQuality.multiplier;
 
-                // PATHFINDER SKILL: +50% detection range
+                // PATHFINDER SKILL: +100% detection range
                 if (this.hasSkill('pathfinder')) {
-                    this.foodDetectRadius *= 1.5;
+                    this.foodDetectRadius *= 2;
                 }
 
                 // Carry efficiency
@@ -8608,12 +10105,8 @@
                        this.experience.dangerDeliveries * 2 +  // Danger zone worth double
                        this.experience.predatorEscapes * 3 +   // Escapes worth triple
                        Math.floor(this.experience.foodDiscovered * 0.5) +  // Bonus for discovery
-                       this.experience.predatorKills * 5;       // Kills worth 5 XP each (scales with wave)
-
-                // SCAVENGER SKILL: +25% XP from all sources
-                if (this.hasSkill('scavenger')) {
-                    baseXP = Math.floor(baseXP * 1.25);
-                }
+                       this.experience.predatorKills * 5 +      // Kills worth 5 XP each (scales with wave)
+                       (this.experience.scavengerBonus || 0);   // Scavenger bonus XP
 
                 return baseXP;
             }
@@ -8651,11 +10144,15 @@
                 this.experience.totalValue += value;
                 if (fromDangerZone) {
                     this.experience.dangerDeliveries++;
+                    // SCAVENGER: +1 bonus XP for danger delivery
+                    if (this.hasSkill('scavenger')) this.experience.scavengerBonus++;
                 }
+                // SCAVENGER: +1 bonus XP for delivery
+                if (this.hasSkill('scavenger')) this.experience.scavengerBonus++;
 
-                // MOMENTUM SKILL: +5% SPD per delivery, stacks up to 10 times
+                // MOMENTUM SKILL: +5% SPD per delivery, stacks up to 20 times
                 if (this.hasSkill('momentum')) {
-                    if (this.momentumStacks < 10) {
+                    if (this.momentumStacks < 20) {
                         this.momentumStacks++;
                         spawnMomentumEffect(this.x, this.y, this.momentumStacks);
                         spawnFloatingText(this.x, this.y - 35, `💨 x${this.momentumStacks}`, '#4fc1e9', 11, 90, this);
@@ -8679,6 +10176,8 @@
             // Record food discovery (when ant first finds a food source)
             recordFoodDiscovery() {
                 this.experience.foodDiscovered++;
+                // SCAVENGER: +1 bonus XP for food discovery
+                if (this.hasSkill('scavenger')) this.experience.scavengerBonus++;
                 this.checkLevelUp();
             }
 
@@ -8687,6 +10186,8 @@
                 this.experience.predatorEncounters++;
                 if (escaped) {
                     this.experience.predatorEscapes++;
+                    // SCAVENGER: +1 bonus XP for predator escape
+                    if (this.hasSkill('scavenger')) this.experience.scavengerBonus++;
                     this.checkLevelUp();
                 }
             }
@@ -8736,17 +10237,20 @@
                     }
                 }
 
-                // IRON SHELL SKILL: Take 50% less damage when below 30% HP
-                let damageMultiplier = 1;
+                // IRON SHELL SKILL: Block every other hit when below 30% HP
+                let blockDamage = false;
                 if (this.hasSkill('ironShell')) {
                     if (this.currentHp / this.maxHp < 0.3) {
-                        damageMultiplier = 0.5;
-                        spawnFloatingText(this.x, this.y - 35, '🛡️ IRON SHELL!', '#74b9ff', 10, 120, this);
+                        this.ironShellCounter++;
+                        if (this.ironShellCounter % 2 === 0) {
+                            blockDamage = true;
+                            spawnFloatingText(this.x, this.y - 35, '🛡️ BLOCKED!', '#74b9ff', 12, 90, this);
+                        }
                     }
                 }
 
                 // Calculate damage: attacker's ATK minus defender's DEF (min 1 damage)
-                const damage = Math.max(1, Math.floor((attackPower - effectiveDef) * damageMultiplier));
+                const damage = blockDamage ? 0 : Math.max(1, Math.floor(attackPower - effectiveDef));
                 this.currentHp -= damage;
 
                 // SECOND WIND SKILL: Survive killing blow once with 50% HP
@@ -8759,7 +10263,7 @@
 
                 // THORNS ABILITY: Reflect damage when hit (harvest ability)
                 if (predator && predator.currentHp !== undefined && this.hasHarvestAbility('thorns')) {
-                    const thornsDamage = Math.ceil(damage * 0.3);  // Reflect 30% of damage taken
+                    const thornsDamage = Math.max(1, Math.ceil(damage * 0.3));  // Reflect 30% of damage taken (min 1)
                     predator.currentHp -= thornsDamage;
                     spawnFloatingText(predator.x, predator.y - 25, `🌵 ${thornsDamage}`, '#27ae60', 10);
                     if (predator.currentHp <= 0) {
@@ -8767,9 +10271,9 @@
                     }
                 }
 
-                // THORNS SKILL: Reflect 30% of damage taken back to attacker
+                // THORNS SKILL: Reflect 30% of damage taken back to attacker (min 1)
                 if (predator && predator.currentHp !== undefined && this.hasSkill('thorns')) {
-                    const thornsDamage = Math.ceil(damage * 0.3);
+                    const thornsDamage = Math.max(1, Math.ceil(damage * 0.3));
                     predator.currentHp -= thornsDamage;
                     spawnFloatingText(predator.x, predator.y - 25, `🌵 ${thornsDamage}`, '#27ae60', 11);
                     if (predator.currentHp <= 0) {
@@ -8872,9 +10376,9 @@
                     }
                 }
 
-                // LAST STAND SKILL: 3x damage when below 20% HP
+                // LAST STAND SKILL: 3x damage when below 50% HP
                 if (this.hasSkill('lastStand')) {
-                    if (this.currentHp / this.maxHp < 0.2) {
+                    if (this.currentHp / this.maxHp < 0.5) {
                         atk *= 3;
                         // Show visual once per combat
                         if (!this.lastStandTriggered) {
@@ -8903,6 +10407,15 @@
                 // RALLY CRY boost: +50% ATK when affected
                 if (this.rallyBoostTimer > 0) {
                     atk *= 1.5;
+                }
+
+                // SHADOW STEP bonus: 3x damage on first attack from stealth
+                if (this.shadowStepActive && this.shadowStepBonusDamage) {
+                    atk *= 3;
+                    this.shadowStepBonusDamage = false;  // Only first attack
+                    this.shadowStepActive = false;  // Break stealth
+                    spawnShadowStrikeEffect(this.x, this.y);
+                    spawnFloatingText(this.x, this.y - 35, '🌑 SHADOWSTRIKE!', '#2c3e50', 14, 90, this);
                 }
 
                 // Apply temporary ATK buffs (if any still exist)
@@ -8975,7 +10488,7 @@
             getEffectiveSpeed() {
                 let speed = this.speed * upgradeMultipliers.antSpeed;
 
-                // MOMENTUM SKILL: +5% SPD per stack (max 10 stacks = +50%)
+                // MOMENTUM SKILL: +5% SPD per stack (max 20 stacks = +100%)
                 if (this.hasSkill('momentum')) {
                     speed *= (1 + this.momentumStacks * 0.05);
                 }
@@ -9028,6 +10541,67 @@
                 // RALLY CRY boost timer countdown
                 if (this.rallyBoostTimer > 0) {
                     this.rallyBoostTimer--;
+                }
+
+                // =====================
+                // ONGOING SKILL EFFECTS
+                // =====================
+                const now = Date.now();
+
+                // VOID RIFT: Pull enemies and deal damage
+                if (this.voidRiftEndTime > 0 && now < this.voidRiftEndTime) {
+                    for (const p of getAllPredators()) {
+                        if (p.currentHp <= 0 || p.state === 'stunned') continue;
+                        const dist = Math.hypot(p.x - this.voidRiftX, p.y - this.voidRiftY);
+                        if (dist < 70 && dist > 10) {
+                            // Pull toward rift
+                            const pullAngle = Math.atan2(this.voidRiftY - p.y, this.voidRiftX - p.x);
+                            p.x += Math.cos(pullAngle) * 1.5;
+                            p.y += Math.sin(pullAngle) * 1.5;
+                        }
+                        // Damage every second (60 frames)
+                        if (dist < 60 && time % 60 === 0) {
+                            p.currentHp -= 2;
+                            spawnFloatingText(p.x, p.y - 15, '2', '#4a0080', 10);
+                            if (p.currentHp <= 0) removePredator(p, this);
+                        }
+                    }
+                } else if (this.voidRiftEndTime > 0) {
+                    this.voidRiftEndTime = 0;
+                }
+
+                // METEOR STRIKE: Impact when delay ends
+                if (this.meteorTarget && now >= this.meteorImpactTime) {
+                    const mx = this.meteorTarget.x;
+                    const my = this.meteorTarget.y;
+                    for (const p of getAllPredators()) {
+                        if (p.currentHp <= 0) continue;
+                        const dist = Math.hypot(p.x - mx, p.y - my);
+                        if (dist < 60) {
+                            p.currentHp -= 10;
+                            spawnFloatingText(p.x, p.y - 20, '10', '#e74c3c', 16);
+                            if (p.currentHp <= 0) removePredator(p, this);
+                        }
+                    }
+                    this.meteorTarget = null;
+                }
+
+                // SHADOW STEP: Track stealth duration
+                if (this.shadowStepActive && now >= this.shadowStepEndTime) {
+                    this.shadowStepActive = false;
+                    this.shadowStepBonusDamage = false;
+                }
+
+                // SPIRIT LINK: Track duration and cleanup
+                if (this.spiritLinkActive && now >= this.spiritLinkEndTime) {
+                    this.spiritLinkActive = false;
+                    for (const ant of this.spiritLinkedAnts) {
+                        if (ant.spiritLinkedTo === this) ant.spiritLinkedTo = null;
+                    }
+                    this.spiritLinkedAnts = [];
+                }
+                if (this.spiritLinkedTo && now >= this.spiritLinkEndTime) {
+                    this.spiritLinkedTo = null;
                 }
 
                 // =====================
@@ -9264,6 +10838,460 @@
                             this.bounceOffWalls();
                             spawnDashEffect(startX, startY, this.x, this.y);
                             spawnFloatingText(this.x, this.y - 35, '💫 DASH!', '#ec87c0', 14, 90, this);
+                        }
+                    }
+                }
+
+                // EARTHQUAKE SKILL: Ground slam dealing damage and slowing enemies
+                if (this.hasSkill('earthquake')) {
+                    const skill = this.getSkill('earthquake');
+                    const now = Date.now();
+                    const cooldownDone = (now - this.getLastSkillUse('earthquake')) >= skill.cooldown;
+
+                    if (cooldownDone) {
+                        const radius = Math.max(80, this.foodDetectRadius * 2);
+                        let nearbyPredators = [];
+                        for (const p of getAllPredators()) {
+                            if (p.currentHp <= 0) continue;
+                            const dist = Math.hypot(p.x - this.x, p.y - this.y);
+                            if (dist < radius) nearbyPredators.push(p);
+                        }
+
+                        if (nearbyPredators.length >= 1) {
+                            this.setLastSkillUse('earthquake', now);
+                            spawnEarthquakeEffect(this.x, this.y, radius);
+                            spawnFloatingText(this.x, this.y - 35, '🌋 EARTHQUAKE!', '#8b4513', 16, 120, this);
+
+                            for (const p of nearbyPredators) {
+                                p.currentHp -= 5;
+                                p.slowTimer = 180;  // 3 seconds of 50% slow
+                                spawnFloatingText(p.x, p.y - 20, '5', '#8b4513', 14);
+                                if (p.currentHp <= 0) removePredator(p, this);
+                            }
+                        }
+                    }
+                }
+
+                // CHAIN LIGHTNING SKILL: Lightning bouncing between enemies
+                if (this.hasSkill('chainLightning')) {
+                    const skill = this.getSkill('chainLightning');
+                    const now = Date.now();
+                    const cooldownDone = (now - this.getLastSkillUse('chainLightning')) >= skill.cooldown;
+
+                    if (cooldownDone) {
+                        // Find first target within range
+                        let firstTarget = null;
+                        let firstDist = 100;
+                        for (const p of getAllPredators()) {
+                            if (p.currentHp <= 0 || p.state === 'stunned') continue;
+                            const dist = Math.hypot(p.x - this.x, p.y - this.y);
+                            if (dist < firstDist) {
+                                firstDist = dist;
+                                firstTarget = p;
+                            }
+                        }
+
+                        if (firstTarget) {
+                            this.setLastSkillUse('chainLightning', now);
+                            const targets = [{ x: this.x, y: this.y }, firstTarget];
+                            const hit = [firstTarget];
+
+                            // Chain to up to 3 more enemies
+                            let current = firstTarget;
+                            for (let i = 0; i < 3; i++) {
+                                let nextTarget = null;
+                                let nextDist = 120;
+                                for (const p of getAllPredators()) {
+                                    if (hit.includes(p) || p.currentHp <= 0) continue;
+                                    const dist = Math.hypot(p.x - current.x, p.y - current.y);
+                                    if (dist < nextDist) {
+                                        nextDist = dist;
+                                        nextTarget = p;
+                                    }
+                                }
+                                if (nextTarget) {
+                                    targets.push(nextTarget);
+                                    hit.push(nextTarget);
+                                    current = nextTarget;
+                                } else break;
+                            }
+
+                            spawnChainLightningEffect(targets);
+                            spawnFloatingText(this.x, this.y - 35, '⛈️ CHAIN LIGHTNING!', '#00bfff', 14, 120, this);
+
+                            for (const p of hit) {
+                                p.currentHp -= 3;
+                                spawnFloatingText(p.x, p.y - 15, '3', '#00bfff', 12);
+                                if (p.currentHp <= 0) removePredator(p, this);
+                            }
+                        }
+                    }
+                }
+
+                // VOID RIFT SKILL: Create portal that pulls enemies and damages them
+                if (this.hasSkill('voidRift')) {
+                    const skill = this.getSkill('voidRift');
+                    const now = Date.now();
+                    const cooldownDone = (now - this.getLastSkillUse('voidRift')) >= skill.cooldown;
+
+                    if (cooldownDone) {
+                        let nearbyPredators = [];
+                        for (const p of getAllPredators()) {
+                            if (p.currentHp <= 0) continue;
+                            const dist = Math.hypot(p.x - this.x, p.y - this.y);
+                            if (dist < 100) nearbyPredators.push(p);
+                        }
+
+                        if (nearbyPredators.length >= 1) {
+                            this.setLastSkillUse('voidRift', now);
+                            this.voidRiftX = this.x;
+                            this.voidRiftY = this.y;
+                            this.voidRiftEndTime = now + 4000;
+                            spawnVoidRiftEffect(this.x, this.y, 240);
+                            spawnFloatingText(this.x, this.y - 35, '🌀 VOID RIFT!', '#4a0080', 16, 120, this);
+                        }
+                    }
+                }
+
+                // FIRE BREATH SKILL: Cone of fire with burn damage
+                if (this.hasSkill('fireBreath')) {
+                    const skill = this.getSkill('fireBreath');
+                    const now = Date.now();
+                    const cooldownDone = (now - this.getLastSkillUse('fireBreath')) >= skill.cooldown;
+
+                    if (cooldownDone) {
+                        const range = 80;
+                        const coneAngle = 0.5;  // ~57 degrees cone
+                        let hitPredators = [];
+
+                        for (const p of getAllPredators()) {
+                            if (p.currentHp <= 0) continue;
+                            const dist = Math.hypot(p.x - this.x, p.y - this.y);
+                            if (dist < range) {
+                                const angleToP = Math.atan2(p.y - this.y, p.x - this.x);
+                                const angleDiff = Math.abs(this.angleDiff(angleToP, this.angle));
+                                if (angleDiff < coneAngle) hitPredators.push(p);
+                            }
+                        }
+
+                        if (hitPredators.length >= 1) {
+                            this.setLastSkillUse('fireBreath', now);
+                            spawnFireBreathEffect(this.x, this.y, this.angle, range);
+                            spawnFloatingText(this.x, this.y - 35, '🔥 FIRE BREATH!', '#ff4500', 14, 120, this);
+
+                            for (const p of hitPredators) {
+                                p.currentHp -= 4;
+                                p.burnTimer = 180;  // 3 seconds burn (2 dmg/sec)
+                                p.burnSource = this;
+                                spawnFloatingText(p.x, p.y - 20, '4 🔥', '#ff4500', 12);
+                                if (p.currentHp <= 0) removePredator(p, this);
+                            }
+                        }
+                    }
+                }
+
+                // ICE NOVA SKILL: Freeze all nearby enemies solid
+                if (this.hasSkill('iceNova')) {
+                    const skill = this.getSkill('iceNova');
+                    const now = Date.now();
+                    const cooldownDone = (now - this.getLastSkillUse('iceNova')) >= skill.cooldown;
+
+                    if (cooldownDone) {
+                        const radius = Math.max(100, this.foodDetectRadius * 2);
+                        let nearbyPredators = [];
+                        for (const p of getAllPredators()) {
+                            if (p.currentHp <= 0 || p.state === 'stunned') continue;
+                            const dist = Math.hypot(p.x - this.x, p.y - this.y);
+                            if (dist < radius) nearbyPredators.push(p);
+                        }
+
+                        if (nearbyPredators.length >= 1) {
+                            this.setLastSkillUse('iceNova', now);
+                            spawnIceNovaEffect(this.x, this.y, radius);
+                            spawnFloatingText(this.x, this.y - 35, '❄️ ICE NOVA!', '#87ceeb', 16, 120, this);
+
+                            for (const p of nearbyPredators) {
+                                p.frozenTimer = 180;  // 3 seconds frozen solid
+                                p.stunTimer = 180;    // Must set stunTimer too for stun to persist
+                                p.state = 'stunned';
+                                spawnFloatingText(p.x, p.y - 20, 'FROZEN!', '#87ceeb', 12);
+                            }
+                        }
+                    }
+                }
+
+                // SHADOW STEP SKILL: Become invisible, next attack is 3x damage
+                if (this.hasSkill('shadowStep')) {
+                    const skill = this.getSkill('shadowStep');
+                    const now = Date.now();
+                    const cooldownDone = (now - this.getLastSkillUse('shadowStep')) >= skill.cooldown;
+
+                    if (cooldownDone && !this.shadowStepActive) {
+                        // Activate when predator is nearby but not too close
+                        let nearbyThreat = false;
+                        for (const p of getAllPredators()) {
+                            if (p.currentHp <= 0) continue;
+                            const dist = Math.hypot(p.x - this.x, p.y - this.y);
+                            if (dist < 120 && dist > 40) {
+                                nearbyThreat = true;
+                                break;
+                            }
+                        }
+
+                        if (nearbyThreat) {
+                            this.setLastSkillUse('shadowStep', now);
+                            this.shadowStepActive = true;
+                            this.shadowStepEndTime = now + 4000;
+                            this.shadowStepBonusDamage = true;
+                            spawnShadowStepEffect(this.x, this.y);
+                            spawnFloatingText(this.x, this.y - 35, '🌑 SHADOW STEP!', '#2c3e50', 14, 120, this);
+                        }
+                    }
+                }
+
+                // WAR CRY SKILL: Terrify enemies making them flee
+                if (this.hasSkill('warCry')) {
+                    const skill = this.getSkill('warCry');
+                    const now = Date.now();
+                    const cooldownDone = (now - this.getLastSkillUse('warCry')) >= skill.cooldown;
+
+                    if (cooldownDone) {
+                        const radius = Math.max(100, this.foodDetectRadius * 2);
+                        let nearbyPredators = [];
+                        for (const p of getAllPredators()) {
+                            if (p.currentHp <= 0 || p.state === 'stunned') continue;
+                            const dist = Math.hypot(p.x - this.x, p.y - this.y);
+                            if (dist < radius) nearbyPredators.push(p);
+                        }
+
+                        if (nearbyPredators.length >= 1) {
+                            this.setLastSkillUse('warCry', now);
+                            spawnWarCryEffect(this.x, this.y, radius);
+                            spawnFloatingText(this.x, this.y - 35, '😱 WAR CRY!', '#c0392b', 16, 120, this);
+
+                            for (const p of nearbyPredators) {
+                                p.fearTimer = 180;  // 3 seconds of fear
+                                p.fearSourceX = this.x;
+                                p.fearSourceY = this.y;
+                                spawnFloatingText(p.x, p.y - 20, 'TERRIFIED!', '#c0392b', 12);
+                            }
+                        }
+                    }
+                }
+
+                // HEALING AURA SKILL: Heal all nearby allies
+                if (this.hasSkill('healingAura')) {
+                    const skill = this.getSkill('healingAura');
+                    const now = Date.now();
+                    const cooldownDone = (now - this.getLastSkillUse('healingAura')) >= skill.cooldown;
+
+                    if (cooldownDone) {
+                        const radius = 80;
+                        let nearbyAllies = [];
+                        let anyWounded = false;
+
+                        for (const ant of ants) {
+                            const dist = Math.hypot(ant.x - this.x, ant.y - this.y);
+                            if (dist < radius) {
+                                nearbyAllies.push(ant);
+                                if (ant.currentHp < ant.maxHp * 0.8) anyWounded = true;
+                            }
+                        }
+
+                        if (nearbyAllies.length >= 2 && anyWounded) {
+                            this.setLastSkillUse('healingAura', now);
+                            spawnHealingAuraEffect(this.x, this.y, radius, nearbyAllies);
+                            spawnFloatingText(this.x, this.y - 35, '💚 HEALING AURA!', '#2ecc71', 14, 120, this);
+
+                            for (const ant of nearbyAllies) {
+                                const healAmount = Math.floor(ant.maxHp * 0.3);
+                                ant.currentHp = Math.min(ant.maxHp, ant.currentHp + healAmount);
+                                spawnFloatingText(ant.x, ant.y - 20, `+${healAmount}`, '#2ecc71', 11, 90, ant);
+                            }
+                        }
+                    }
+                }
+
+                // METEOR STRIKE SKILL: Delayed massive damage in area
+                if (this.hasSkill('meteorStrike')) {
+                    const skill = this.getSkill('meteorStrike');
+                    const now = Date.now();
+                    const cooldownDone = (now - this.getLastSkillUse('meteorStrike')) >= skill.cooldown;
+
+                    if (cooldownDone) {
+                        // Find cluster of enemies within range of ant (150px)
+                        const meteorRange = 150;
+                        let bestSpot = null;
+                        let bestCount = 0;
+                        for (const p of getAllPredators()) {
+                            if (p.currentHp <= 0) continue;
+                            // Only consider enemies within range of the ant
+                            const distToAnt = Math.hypot(p.x - this.x, p.y - this.y);
+                            if (distToAnt > meteorRange) continue;
+
+                            let count = 0;
+                            for (const p2 of getAllPredators()) {
+                                if (p2.currentHp <= 0) continue;
+                                const dist = Math.hypot(p2.x - p.x, p2.y - p.y);
+                                if (dist < 60) count++;
+                            }
+                            if (count > bestCount) {
+                                bestCount = count;
+                                bestSpot = { x: p.x, y: p.y };
+                            }
+                        }
+
+                        if (bestSpot && bestCount >= 1) {
+                            this.setLastSkillUse('meteorStrike', now);
+                            this.meteorTarget = bestSpot;
+                            this.meteorImpactTime = now + 1500;  // 1.5s delay
+                            spawnMeteorStrikeEffect(bestSpot.x, bestSpot.y, 90);
+                            spawnFloatingText(this.x, this.y - 35, '☄️ METEOR STRIKE!', '#e74c3c', 16, 120, this);
+                        }
+                    }
+                }
+
+                // MIRROR IMAGE SKILL: Blink back and create decoy clones
+                if (this.hasSkill('mirrorImage')) {
+                    const skill = this.getSkill('mirrorImage');
+                    const now = Date.now();
+                    const cooldownDone = (now - this.getLastSkillUse('mirrorImage')) >= skill.cooldown;
+
+                    if (cooldownDone) {
+                        let nearbyThreat = false;
+                        for (const p of getAllPredators()) {
+                            if (p.currentHp <= 0) continue;
+                            const dist = Math.hypot(p.x - this.x, p.y - this.y);
+                            if (dist < 100) {
+                                nearbyThreat = true;
+                                break;
+                            }
+                        }
+
+                        if (nearbyThreat) {
+                            this.setLastSkillUse('mirrorImage', now);
+
+                            // Store original position for decoys
+                            const originalX = this.x;
+                            const originalY = this.y;
+
+                            // Blink the ant backward (away from the threat)
+                            // Find average threat direction and move opposite
+                            let avgThreatX = 0, avgThreatY = 0, threatCount = 0;
+                            for (const p of getAllPredators()) {
+                                if (p.currentHp <= 0) continue;
+                                const dist = Math.hypot(p.x - this.x, p.y - this.y);
+                                if (dist < 100) {
+                                    avgThreatX += p.x;
+                                    avgThreatY += p.y;
+                                    threatCount++;
+                                }
+                            }
+                            if (threatCount > 0) {
+                                avgThreatX /= threatCount;
+                                avgThreatY /= threatCount;
+                            }
+
+                            // Calculate escape direction (away from threats)
+                            const escapeAngle = Math.atan2(this.y - avgThreatY, this.x - avgThreatX);
+                            const blinkDistance = 60;
+                            const newX = this.x + Math.cos(escapeAngle) * blinkDistance;
+                            const newY = this.y + Math.sin(escapeAngle) * blinkDistance;
+
+                            // Spawn blink effect for the escape
+                            spawnBlinkEffect(originalX, originalY, newX, newY);
+
+                            // Move ant to new position
+                            this.x = newX;
+                            this.y = newY;
+
+                            // Spawn 2 decoys at the original position
+                            spawnMirrorDecoy(originalX + 15, originalY - 10, this);
+                            spawnMirrorDecoy(originalX - 15, originalY + 10, this);
+
+                            // Visual effect at spawn location
+                            spawnMirrorImageEffect(originalX, originalY, this);
+                            spawnFloatingText(originalX, originalY - 35, '🪞 MIRROR IMAGE!', '#9b59b6', 14, 120);
+                        }
+                    }
+                }
+
+                // BLINK SKILL: Teleport to enemy and stun
+                if (this.hasSkill('blink')) {
+                    const skill = this.getSkill('blink');
+                    const now = Date.now();
+                    const cooldownDone = (now - this.getLastSkillUse('blink')) >= skill.cooldown;
+
+                    if (cooldownDone) {
+                        // Find a nearby enemy to blink to
+                        let blinkTarget = null;
+                        let blinkDist = 150;
+                        for (const p of getAllPredators()) {
+                            if (p.currentHp <= 0 || p.state === 'stunned') continue;
+                            const dist = Math.hypot(p.x - this.x, p.y - this.y);
+                            if (dist < blinkDist && dist > 40) {
+                                blinkDist = dist;
+                                blinkTarget = p;
+                            }
+                        }
+
+                        if (blinkTarget) {
+                            this.setLastSkillUse('blink', now);
+                            const startX = this.x;
+                            const startY = this.y;
+                            // Teleport next to target
+                            const angle = Math.atan2(this.y - blinkTarget.y, this.x - blinkTarget.x);
+                            this.x = blinkTarget.x + Math.cos(angle) * 20;
+                            this.y = blinkTarget.y + Math.sin(angle) * 20;
+                            this.angle = angle + Math.PI;  // Face the target
+
+                            spawnBlinkEffect(startX, startY, this.x, this.y);
+                            spawnFloatingText(this.x, this.y - 35, '✨ BLINK!', '#f39c12', 14, 90, this);
+
+                            // Stun the target
+                            blinkTarget.stunTimer = 90;  // 1.5 seconds
+                            blinkTarget.state = 'stunned';
+                            spawnFloatingText(blinkTarget.x, blinkTarget.y - 20, 'STUNNED!', '#f39c12', 12);
+                        }
+                    }
+                }
+
+                // SPIRIT LINK SKILL: Link with allies to share damage (DET×2 range, triggers when any ally is in combat)
+                if (this.hasSkill('spiritLink')) {
+                    const skill = this.getSkill('spiritLink');
+                    const now = Date.now();
+                    const cooldownDone = (now - this.getLastSkillUse('spiritLink')) >= skill.cooldown;
+
+                    if (cooldownDone && !this.spiritLinkActive) {
+                        const radius = this.foodDetectRadius * 2;  // Use DET×2 range
+                        let nearbyAllies = [];
+                        let anyInCombat = false;
+
+                        for (const ant of ants) {
+                            if (ant === this) continue;
+                            const dist = Math.hypot(ant.x - this.x, ant.y - this.y);
+                            if (dist < radius) {
+                                nearbyAllies.push(ant);
+                            }
+                            // Check if ANY ant is in combat (not just nearby ones)
+                            if (ant.fightingTimer > 0 || ant.state === 'hunting') anyInCombat = true;
+                        }
+
+                        // Trigger when any ally on the map is in combat and we have nearby allies to link with
+                        if (nearbyAllies.length >= 1 && anyInCombat) {
+                            this.setLastSkillUse('spiritLink', now);
+                            this.spiritLinkActive = true;
+                            this.spiritLinkEndTime = now + 6000;
+                            this.spiritLinkedAnts = nearbyAllies;
+
+                            // Mark linked ants
+                            for (const ant of nearbyAllies) {
+                                ant.spiritLinkedTo = this;
+                                ant.spiritLinkEndTime = now + 6000;
+                            }
+
+                            spawnSpiritLinkEffect(this, nearbyAllies);
+                            spawnFloatingText(this.x, this.y - 35, '🔗 SPIRIT LINK!', '#1abc9c', 14, 120, this);
                         }
                     }
                 }
@@ -9832,6 +11860,20 @@
 
                 ctx.save();
                 ctx.translate(this.x, this.y);
+
+                // SHADOW STEP: Ant becomes semi-transparent while stealthed
+                if (this.shadowStepActive) {
+                    ctx.globalAlpha = 0.3 + Math.sin(Date.now() / 200) * 0.1;
+                    // Dark shadow aura
+                    const shadowGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, 25);
+                    shadowGrad.addColorStop(0, 'rgba(44, 62, 80, 0.5)');
+                    shadowGrad.addColorStop(0.7, 'rgba(44, 62, 80, 0.2)');
+                    shadowGrad.addColorStop(1, 'transparent');
+                    ctx.fillStyle = shadowGrad;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 25, 0, Math.PI * 2);
+                    ctx.fill();
+                }
 
                 // Rally Cry buff glow (golden aura before rotation)
                 if (this.rallyBoostTimer > 0) {
@@ -11188,47 +13230,60 @@
 
                 document.getElementById('card-id').textContent = `#${String(ant.id).padStart(3, '0')}`;
 
-                // Show skill if ant has one - WoW-style square icon
+                // Show skills if ant has any - WoW-style square icons
                 const skillSection = document.getElementById('card-skill-section');
-                if (ant.chosenSkill) {
+                if (ant.chosenSkill || ant.chosenSkill2) {
                     skillSection.style.display = 'block';
-                    const skill = ant.chosenSkill;
                     const now = Date.now();
-                    const cooldownRemaining = Math.max(0, (ant.lastSkillUse + skill.cooldown) - now);
-                    const cooldownPercent = skill.cooldown > 0 ? (cooldownRemaining / skill.cooldown) * 100 : 0;
-                    const isReady = cooldownRemaining === 0 || skill.type === 'passive';
-                    const cooldownSeconds = Math.ceil(cooldownRemaining / 1000);
-                    const isPassive = skill.type === 'passive';
-                    const cooldownText = isPassive ? 'Passive' : `${skill.cooldown / 1000}s cooldown`;
 
-                    // Build state classes
-                    const stateClass = isPassive ? 'passive' : (isReady ? 'ready' : 'on-cooldown');
+                    // Helper function to render a skill icon
+                    const renderSkillIcon = (skill, skillKey, slotNum) => {
+                        const lastUse = ant.getLastSkillUse(skillKey);
+                        const cooldownRemaining = Math.max(0, (lastUse + skill.cooldown) - now);
+                        const cooldownPercent = skill.cooldown > 0 ? (cooldownRemaining / skill.cooldown) * 100 : 0;
+                        const isReady = cooldownRemaining === 0 || skill.type === 'passive';
+                        const cooldownSeconds = Math.ceil(cooldownRemaining / 1000);
+                        const isPassive = skill.type === 'passive';
+                        const cooldownText = isPassive ? 'Passive' : `${skill.cooldown / 1000}s cooldown`;
+                        const stateClass = isPassive ? 'passive' : (isReady ? 'ready' : 'on-cooldown');
+                        const levelText = slotNum === 1 ? 'Level 3 Skill' : 'Level 7 Skill';
 
-                    skillSection.innerHTML = `
-                        <div class="card-skill">
-                            <div class="wow-skill-icon ${stateClass}" id="skill-cooldown-wrapper">
-                                <div class="wow-ready-glow"></div>
-                                <span class="skill-emoji">${skill.icon}</span>
-                                ${!isPassive ? `<div class="wow-cooldown-sweep" style="--cooldown-percent: ${cooldownPercent}%"></div>` : ''}
-                                ${!isPassive && cooldownSeconds > 0 ? `<span class="wow-cooldown-text">${cooldownSeconds}</span>` : ''}
-                                ${isPassive ? `<span class="wow-passive-badge">P</span>` : ''}
-                            </div>
-                            <div class="ability-tooltip">
-                                <div class="ability-tooltip-header">
-                                    <span class="ability-tooltip-icon">${skill.icon}</span>
-                                    <div class="ability-tooltip-title">
-                                        <div class="ability-tooltip-name">${skill.name}</div>
-                                        <div class="ability-tooltip-type">${isPassive ? 'Passive Ability' : 'Active Ability'}</div>
+                        return `
+                            <div class="card-skill">
+                                <div class="wow-skill-icon ${stateClass}" data-skill-wrapper="${slotNum}">
+                                    <div class="wow-ready-glow"></div>
+                                    <span class="skill-emoji">${skill.icon}</span>
+                                    ${!isPassive ? `<div class="wow-cooldown-sweep" style="--cooldown-percent: ${cooldownPercent}%"></div>` : ''}
+                                    ${!isPassive && cooldownSeconds > 0 ? `<span class="wow-cooldown-text">${cooldownSeconds}</span>` : ''}
+                                    ${isPassive ? `<span class="wow-passive-badge">P</span>` : ''}
+                                </div>
+                                <div class="ability-tooltip">
+                                    <div class="ability-tooltip-header">
+                                        <span class="ability-tooltip-icon">${skill.icon}</span>
+                                        <div class="ability-tooltip-title">
+                                            <div class="ability-tooltip-name">${skill.name}</div>
+                                            <div class="ability-tooltip-type">${isPassive ? 'Passive Ability' : 'Active Ability'}</div>
+                                        </div>
+                                    </div>
+                                    <div class="ability-tooltip-desc">${skill.description}</div>
+                                    <div class="ability-tooltip-meta">
+                                        <span class="ability-tooltip-cooldown">${cooldownText}</span>
+                                        <span>${levelText}</span>
                                     </div>
                                 </div>
-                                <div class="ability-tooltip-desc">${skill.description}</div>
-                                <div class="ability-tooltip-meta">
-                                    <span class="ability-tooltip-cooldown">${cooldownText}</span>
-                                    <span>Level 3 Skill</span>
-                                </div>
                             </div>
-                        </div>
-                    `;
+                        `;
+                    };
+
+                    let skillsHtml = '<div class="card-skills-row">';
+                    if (ant.chosenSkill) {
+                        skillsHtml += renderSkillIcon(ant.chosenSkill, ant.skillKey, 1);
+                    }
+                    if (ant.chosenSkill2) {
+                        skillsHtml += renderSkillIcon(ant.chosenSkill2, ant.skillKey2, 2);
+                    }
+                    skillsHtml += '</div>';
+                    skillSection.innerHTML = skillsHtml;
                 } else {
                     skillSection.style.display = 'none';
                 }
@@ -11348,24 +13403,30 @@
                 statIndex++;
             });
 
-            // Update skill cooldown if present
-            if (ant.chosenSkill && ant.chosenSkill.type === 'active') {
-                const skill = ant.chosenSkill;
-                const now = Date.now();
-                const cooldownRemaining = Math.max(0, (ant.lastSkillUse + skill.cooldown) - now);
+            // Update skill cooldowns in real-time (both slots)
+            const now = Date.now();
+
+            // Helper function to update a skill cooldown display
+            const updateSkillCooldown = (skill, skillKey, slotNum) => {
+                if (!skill || skill.type === 'passive') return;
+
+                const lastUse = ant.getLastSkillUse(skillKey);
+                const cooldownRemaining = Math.max(0, (lastUse + skill.cooldown) - now);
                 const cooldownPercent = skill.cooldown > 0 ? (cooldownRemaining / skill.cooldown) * 100 : 0;
                 const isReady = cooldownRemaining === 0;
                 const cooldownSeconds = Math.ceil(cooldownRemaining / 1000);
 
-                const wrapper = document.getElementById('skill-cooldown-wrapper');
+                const wrapper = document.querySelector(`[data-skill-wrapper="${slotNum}"]`);
                 if (wrapper) {
-                    const sweep = wrapper.querySelector('.cooldown-sweep');
-                    const text = wrapper.querySelector('.cooldown-text');
+                    const sweep = wrapper.querySelector('.wow-cooldown-sweep');
+                    const text = wrapper.querySelector('.wow-cooldown-text');
 
                     if (isReady) {
                         wrapper.classList.add('ready');
+                        wrapper.classList.remove('on-cooldown');
                     } else {
                         wrapper.classList.remove('ready');
+                        wrapper.classList.add('on-cooldown');
                     }
 
                     if (sweep) {
@@ -11375,7 +13436,11 @@
                         text.textContent = cooldownSeconds > 0 ? cooldownSeconds : '';
                     }
                 }
-            }
+            };
+
+            // Update both skill slots
+            if (ant.chosenSkill) updateSkillCooldown(ant.chosenSkill, ant.skillKey, 1);
+            if (ant.chosenSkill2) updateSkillCooldown(ant.chosenSkill2, ant.skillKey2, 2);
         }
 
         function closeCharacterCard() {
@@ -12200,6 +14265,20 @@
             updateLuckyEffects(); // Lucky clover shimmer
             updatePackHunterEffects(); // Pack Hunter wolf howl
             updateDashEffects(); // Dash teleport effect
+            updateEarthquakeEffects(); // Earthquake ground slam
+            updateChainLightningEffects(); // Chain lightning arcs
+            updateVoidRiftEffects(); // Void rift portals
+            updateFireBreathEffects(); // Fire breath cones
+            updateIceNovaEffects(); // Ice nova freeze
+            updateShadowStepEffects(); // Shadow step stealth
+            updateWarCryEffects(); // War cry terror
+            updateHealingAuraEffects(); // Healing aura
+            updateMeteorStrikeEffects(); // Meteor strike
+            updateMirrorImageEffects(); // Mirror image clones
+            updateMirrorDecoys(); // Mirror decoy entities
+            checkMirrorDecoyCombat(); // Predators attack decoys
+            updateBlinkEffects(); // Blink teleport
+            updateSpiritLinkEffects(); // Spirit link chains
             updateSkilledAntsPanel(); // Update skill cooldowns in UI
 
             // Check for game over
@@ -12270,6 +14349,19 @@
             drawLuckyEffects(); // Lucky clover shimmer
             drawPackHunterEffects(); // Pack Hunter wolf howl
             drawDashEffects(); // Dash teleport effect
+            drawEarthquakeEffects(); // Earthquake ground slam
+            drawChainLightningEffects(); // Chain lightning arcs
+            drawVoidRiftEffects(); // Void rift portals
+            drawFireBreathEffects(); // Fire breath cones
+            drawIceNovaEffects(); // Ice nova freeze
+            drawShadowStepEffects(); // Shadow step stealth
+            drawWarCryEffects(); // War cry terror
+            drawHealingAuraEffects(); // Healing aura
+            drawMeteorStrikeEffects(); // Meteor strike
+            drawMirrorImageEffects(); // Mirror image clones
+            drawMirrorDecoys(); // Mirror decoy entities with HP
+            drawBlinkEffects(); // Blink teleport
+            drawSpiritLinkEffects(); // Spirit link chains
             drawFloatingTexts();  // Reward and damage floating text
             drawHint();
             drawSelectionRect(); // Draw selection rectangle on top
