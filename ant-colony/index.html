@@ -6895,6 +6895,9 @@
                 // Ant is killed - spawn death effect
                 spawnDeathEffect(ant.x, ant.y, 'ant', ant.color);
 
+                // Drop any carried food back to source
+                dropCarriedFood(ant);
+
                 const idx = ants.indexOf(ant);
                 if (idx !== -1) {
                     ants.splice(idx, 1);
@@ -6985,6 +6988,7 @@
                                 // Check if ant died from counter-attack
                                 if (ant.currentHp <= 0) {
                                     spawnDeathEffect(ant.x, ant.y, 'ant', ant.color);
+                                    dropCarriedFood(ant);
                                     const idx = ants.indexOf(ant);
                                     if (idx !== -1) {
                                         ants.splice(idx, 1);
@@ -7591,6 +7595,7 @@
                                 spawnFloatingText(ant.x, ant.y - 15, '3', '#ff4444', 12, 60);
                                 if (ant.currentHp <= 0) {
                                     spawnDeathEffect(ant.x, ant.y, 'ant', ant.color);
+                                    dropCarriedFood(ant);
                                     const idx = ants.indexOf(ant);
                                     if (idx !== -1) ants.splice(idx, 1);
                                 }
@@ -8166,6 +8171,35 @@
             const food = new FoodItem(x, y, foodType, zoneIndex);
             foodItems.push(food);
             zoneOccupied.set(zoneIndex, food);
+        }
+
+        // Drop carried food when an ant dies - restores units to source or spawns dropped food
+        function dropCarriedFood(ant) {
+            if (!ant.carriedFoodPiece) return;
+
+            const carried = ant.carriedFoodPiece;
+            const unitsCarried = carried.units || 1;
+
+            // Try to restore units to the source food if it still exists
+            if (carried.sourceFood && foodItems.includes(carried.sourceFood)) {
+                carried.sourceFood.size += unitsCarried;
+                // Make sure size doesn't exceed maxSize
+                carried.sourceFood.size = Math.min(carried.sourceFood.size, carried.sourceFood.maxSize);
+            } else {
+                // Source food is gone (was emptied) - need to respawn food at the zone
+                const zoneSpot = carried.sourceFood?.zoneSpot;
+                if (zoneSpot !== null && zoneSpot !== undefined && !zoneOccupied.has(zoneSpot)) {
+                    // Respawn food at the zone immediately
+                    const spot = foodSpots[zoneSpot];
+                    if (spot) {
+                        respawnFoodAtZone(zoneSpot, carried.type, spot.x, spot.y);
+                    }
+                }
+            }
+
+            // Clear the ant's carried food
+            ant.carriedFoodPiece = null;
+            ant.carriedFoodValue = 0;
         }
 
         // Initialize food in all zones at game start
